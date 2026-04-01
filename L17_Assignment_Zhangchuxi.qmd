@@ -1,0 +1,155 @@
+---
+title: "Assignment II: Group [1]"
+author: "Zhang chuxi"
+format: 
+  html:
+    toc: true
+    code-fold: false
+    embed-resources: true # <= check here: https://quarto.org/docs/reference/formats/html.html
+execute:
+  echo: true    # <= knitr::opts_chunk$set(echo = TRUE) in Rmarkdown
+  warning: false
+  message: false
+---
+
+# Name
+
+[**Name**]{style="color:red"}**: Zhang chuxi**
+
+# Generative AI declaration
+
+Students may use generative AI tools during assignment, for example, to check and improve code, provided that the content is original and reflects the student's own contributions. If generative AI is used, students must declare its use in the box below. An example statement is: “*During the assignment, I used \[XXXX\] to \[XXXX\]. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.”*
+
+::: callout
+xxxxxxxxxxxxxx
+:::
+
+# Dataset
+
+Each group member may choose either of the following dataset:
+
+**Built-in dataset**
+
+-   `palmerpenguins::penguins`
+-   `ggplot2::msleep`
+-   `ggplot2::midwest`
+-   `datasets::quakes`
+
+**Public dataset**
+
+BIOTIME (CC0) <https://biotime.st-andrews.ac.uk/usageGuidelines.php>
+
+-   `BIOTIME_raw_data_192.csv` (uploaded on Canvas) (Whale data from <https://biotime.st-andrews.ac.uk/selectStudy.php?study=192>)
+-   `BIOTIME_raw_data_232.csv` (uploaded on Canvas) (Fish data from <https://biotime.st-andrews.ac.uk/selectStudy.php?study=232>)
+
+# Figures by each group member
+
+### Dataset
+
+::: callout-important
+[Which dataset did you choose?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+`BIOTIME_raw_data_192.csv`
+:::
+
+### Introduction
+
+::: callout-important
+[What is the dataset about? What variables are included in the data? How was the data taken/measured?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+*What is the dataset about?*
+
+It is about Balaenoptera bonaerensis's abundance and location,including when and where was it discovered and how many were there.
+
+*What variables are included in the data?*
+
+year,latitude,longitude,abundance
+
+*How was the data taken/measured?*
+
+It is from BIOTIME database.
+:::
+
+### Interactive plot(s) using `plotly`
+
+::: callout-important
+[Please explain which plot type you choose and why. Also, please discuss the strengths and weaknesses of your plot(s).]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+xxxxxxxxxxxxxx
+:::
+
+Note: At least one plot is required, but multiple plots are allowed
+
+::: callout-important
+[What is the purpose of this visualization?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+xxxxxxxxxxxxxx
+:::
+
+Note: If you want to specify setting for a code chunk, you can use `#|` for each option (for example, `#| echo: true`). Rmarkdown code chunk still works (for example, `{r echo = true}`), but Quarto style is recommended.
+
+```{r}
+#| echo: true
+# YOUR CODE HERE
+# xxxxx
+```
+
+### Animation using `gganimate`
+
+::: callout-important
+[Please explain which animation type you choose and why. Also, please discuss the strengths and weaknesses of your animation.]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+xxxxxxxxxxxxxx
+:::
+
+Note: At least one animation is required, but multiple animations are allowed
+
+::: callout-important
+[What is the purpose of this visualization?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+xxxxxxxxxxxxxx
+:::
+
+```{r}
+# YOUR CODE HERE
+# xxxxx
+library(leaflet)
+library(readr)
+library(tidyverse)
+library(gganimate)
+library(plotly)
+df <- read_csv("BIOTIME_raw_data_192.csv")
+
+group_df<-df%>%
+  group_by(YEAR, LATITUDE, LONGITUDE, valid_name) %>%
+  summarise(ABUNDANCE = sum(ABUNDANCE, na.rm = TRUE), .groups = "drop")
+
+ggplot(df,aes(x = LONGITUDE, y = LATITUDE, 
+             size = ABUNDANCE, color = ABUNDANCE))
+
+
+```
