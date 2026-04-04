@@ -328,4 +328,187 @@ xxxxxxxxxxxxxx
 ```{r}
 # YOUR CODE HERE
 # xxxxx
+
+
+
+#| echo: true
+#| warning: false
+#| message: false
+
+library(dplyr)
+library(ggplot2)
+library(gganimate)
+library(forcats)
+library(scales)
+
+bio <- read.csv("data/BIOTIME_raw_data_232.csv")
+
+bio_clean <- bio %>%
+  filter(!is.na(valid_name),
+         !is.na(ABUNDANCE),
+         !is.na(YEAR),
+         ABUNDANCE > 0)
+
+top8 <- bio_clean %>%
+  group_by(valid_name) %>%
+  summarise(total_abundance = sum(ABUNDANCE, na.rm = TRUE)) %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 8)
+
+anim_data <- bio_clean %>%
+  filter(valid_name %in% top8$valid_name) %>%
+  group_by(YEAR, valid_name) %>%
+  summarise(yearly_abundance = sum(ABUNDANCE, na.rm = TRUE), .groups = "drop")
+
+p_anim <- ggplot(
+  anim_data,
+  aes(
+    x = yearly_abundance,
+    y = fct_reorder(valid_name, yearly_abundance),
+    fill = valid_name
+  )
+) +
+  geom_col(show.legend = FALSE, width = 0.8) +
+  coord_flip() +
+  labs(
+    title = "Top 8 Fish Species by Abundance in Year: {closest_state}",
+    x = "Total Abundance",
+    y = "Species"
+  ) +
+  scale_x_continuous(labels = comma) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 18, face = "bold"),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11)
+  )
+
+p_anim +
+  transition_states(
+    YEAR,
+    transition_length = 2,
+    state_length = 1
+  ) +
+  ease_aes("cubic-in-out")
+```
+
+```{r}
+
+#| echo: true
+#| warning: false
+#| message: false
+
+library(dplyr)
+library(plotly)
+
+# Step 1: read data
+bio <- read.csv("data/BIOTIME_raw_data_232.csv")
+
+# Step 2: clean data
+bio_clean <- bio %>%
+  filter(!is.na(valid_name),
+         !is.na(ABUNDANCE),
+         !is.na(BIOMAS),
+         !is.na(YEAR),
+         ABUNDANCE > 0,
+         BIOMAS > 0)
+
+# Step 3: select top 3 species by total abundance
+top3 <- bio_clean %>%
+  group_by(valid_name) %>%
+  summarise(total_abundance = sum(ABUNDANCE, na.rm = TRUE)) %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 3)
+
+anim_data <- bio_clean %>%
+  filter(valid_name %in% top3$valid_name)
+
+# Step 4: animated scatter plot
+plot_ly(
+  data = anim_data,
+  x = ~ABUNDANCE,
+  y = ~BIOMAS,
+  color = ~valid_name,
+  colors = c(
+    "Champsocephalus gunnari" = "#66c2a5",
+    "Channichthys rhinoceratus" = "#fc8d62",
+    "Pleuragramma antarcticum" = "#8da0cb"
+  ),
+  frame = ~YEAR,
+  type = "scatter",
+  mode = "markers",
+  marker = list(size = 10, opacity = 0.7),
+  text = ~paste(
+    "Species:", valid_name,
+    "<br>Abundance:", ABUNDANCE,
+    "<br>Biomass:", BIOMAS,
+    "<br>Year:", YEAR
+  ),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "Animated Abundance-Biomass Patterns of the Top 3 Fish Species",
+    xaxis = list(title = "Abundance"),
+    yaxis = list(title = "Biomass"),
+    legend = list(title = list(text = "Species"))
+  ) %>%
+  animation_opts(
+    frame = 1000,
+    transition = 500,
+    redraw = FALSE
+  ) %>%
+  animation_slider(
+    currentvalue = list(prefix = "Year: ")
+  ) %>%
+  animation_button(
+    x = 0.1,
+    xanchor = "right",
+    y = 0,
+    yanchor = "top"
+  )
+```
+
+```{r}
+# --- 1. 加载包 ---
+library(tidyverse)
+library(plotly)
+library(crosstalk)
+
+# --- 2. 准备 Shared Data (实现颗粒并行联动的关键) ---
+# 选取前 10 个物种，不汇总，保留所有原始采样颗粒
+top_species <- bio %>%
+  count(valid_name, sort = TRUE) %>%
+  head(10) %>%
+  pull(valid_name)
+
+plot_data <- bio %>%
+  filter(valid_name %in% top_species) %>%
+  filter(ABUNDANCE > 0 & BIOMAS > 0) %>%
+  drop_na(ABUNDANCE, BIOMAS, YEAR)
+
+# 使用 crosstalk 创建共享数据集
+shared_bio <- highlight_key(plot_data, ~valid_name)
+
+# --- 3. 创建两个平行的基础图 ---
+# 图 A: 丰度随年份分布 (颗粒点)
+p1 <- ggplot(shared_bio, aes(x = YEAR, y = ABUNDANCE, color = valid_name)) +
+  geom_jitter(alpha = 0.4, size = 1) + 
+  scale_y_log10() +
+  theme_minimal() +
+  labs(y = "Abundance (Log Scale)", x = "") +
+  theme(legend.position = "none")
+
+# 图 B: 生物量随年份分布 (颗粒点)
+p2 <- ggplot(shared_bio, aes(x = YEAR, y = BIOMAS, color = valid_name)) +
+  geom_jitter(alpha = 0.4, size = 1) + 
+  scale_y_log10() +
+  theme_minimal() +
+  labs(y = "Biomass (Log Scale)", x = "Year") +
+  theme(legend.position = "none")
+
+# --- 4. 合并为并行子图 ---
+# 两个变量在每一年（X轴）同时呈现，完全满足你的并行要求
+subplot(ggplotly(p1), ggplotly(p2), nrows = 2, shareX = TRUE, titleY = TRUE) %>%
+  highlight(on = "plotly_click", off = "plotly_doubleclick", color = "red") %>%
+  layout(title = "Parallel Trends: Abundance & Biomass (1968-1999)")
 ```
