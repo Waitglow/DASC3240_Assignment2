@@ -298,6 +298,7 @@ plot_ly(
     xaxis = list(title = "Abundance"),
     yaxis = list(title = "Biomass")
   )
+
 ```
 
 ### Animation using `gganimate`
