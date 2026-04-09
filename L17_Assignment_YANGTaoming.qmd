@@ -1,6 +1,6 @@
 ---
-title: "Assignment II: Group [Number]"
-author: "Name"
+title: "Assignment II: Group A"
+author: "YANG,Taoming"
 format: 
   html:
     toc: true
@@ -14,7 +14,7 @@ execute:
 
 # Name
 
-[**Name**]{style="color:red"}**: XXXXXX**
+[**Name**]{style="color:red"}**: YANG, Taoming**
 
 # Generative AI declaration
 
@@ -53,7 +53,7 @@ BIOTIME (CC0) <https://biotime.st-andrews.ac.uk/usageGuidelines.php>
 ::: callout
 ### Your answer is here
 
-xxxxxxxxxxxxxx
+ggplot2::msleep
 :::
 
 ### Introduction
@@ -65,7 +65,19 @@ xxxxxxxxxxxxxx
 ::: callout
 ### Your answer is here
 
-xxxxxxxxxxxxxx
+This data records details of mammalian sleep and species habits. The dataset contains 83 mammal species and 11 variables. The following is a description of the variables.\
+\
+name: Species name\
+genus: Genus name\
+vore: Diet\
+order: Order name\
+conservation: Conservation status\
+sleep_total: Total sleep time in hours\
+sleep_rem: Rapid eye movement sleep time in hours\
+sleep_cycle: Sleep cycle in minutes\
+awake: Awake time in hours\
+brainwt: Brain weight in grams\
+bodywt: Body weight in kilograms\
 :::
 
 ### Interactive plot(s) using `plotly`
