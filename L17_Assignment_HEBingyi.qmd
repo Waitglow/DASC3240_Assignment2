@@ -363,7 +363,17 @@ plot_ly(
 ::: callout
 ### Your answer is here
 
-xxxxxxxxxxxxxx
+xxxxxxxxxxxxxx I created an **animated spatial scatter plot** using the `gganimate` package, where each frame represents a different year. Specifically, I used `transition_time(YEAR)` to visualize how the spatial distribution of the top three most abundant species changes over time. This animation type allows a smooth temporal transition rather than discrete jumps between years, making the visualization more continuous and easier to follow.
+
+I chose this animation type because the dataset contains both **spatial (latitude and longitude)** and **temporal (year)** dimensions. A static map can only show the overall distribution, but it cannot effectively reveal how species distributions evolve across years. By animating the data, I can highlight temporal dynamics and provide a clearer understanding of how species locations shift over time.
+
+One major **strength** of this animation is that it integrates spatial and temporal information simultaneously. The movement of points across frames helps viewers intuitively understand changes in species distribution. In addition, the use of color coding for different species allows easy comparison between taxa, and the smooth transition (using easing functions) improves visual continuity and readability.
+
+Another strength is that animation provides a **storytelling advantage** over static plots. It helps emphasize trends and patterns that may not be immediately obvious in a single snapshot.
+
+However, this animation also has some **weaknesses**. First, when many observations are concentrated in a small geographic area, point overlap can still occur, making it difficult to distinguish individual data points. Second, because the animation focuses on visual transitions, it may be harder for viewers to extract precise quantitative information compared to static plots. Finally, if the viewer watches only a short segment or misses frames, some temporal patterns may not be fully understood.
+
+Overall, this animated spatial visualization is effective for exploring and communicating **temporal changes in species distribution**, although it should ideally be complemented by static plots for detailed analysis.
 :::
 
 Note: At least one animation is required, but multiple animations are allowed
@@ -375,7 +385,11 @@ Note: At least one animation is required, but multiple animations are allowed
 ::: callout
 ### Your answer is here
 
-xxxxxxxxxxxxxx
+xxxxxxxxxxxxxx The main purpose of this visualization is to **illustrate how the spatial distribution of the top three most abundant species changes over time**. By combining geographic coordinates with temporal information, the animation aims to reveal patterns such as clustering, shifts in location, and potential differences in habitat usage among species.
+
+This visualization also helps highlight whether different species occupy distinct spatial regions or share similar habitats, which may provide insights into ecological interactions and environmental influences in the sub-Antarctic ecosystem.
+
+More broadly, the animation serves as an **explanatory visualization**, allowing viewers to quickly grasp complex spatial–temporal dynamics that would be difficult to interpret from raw data or static figures alone.
 :::
 
 ```{r}
@@ -534,7 +548,7 @@ p_static <- ggplot() +
     panel.grid.minor = element_blank()
   )
 
-# 先看静态图
+# First, look at the static image.
 p_static
 ```
 
