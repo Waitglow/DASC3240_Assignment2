@@ -512,3 +512,59 @@ subplot(ggplotly(p1), ggplotly(p2), nrows = 2, shareX = TRUE, titleY = TRUE) %>%
   highlight(on = "plotly_click", off = "plotly_doubleclick", color = "red") %>%
   layout(title = "Parallel Trends: Abundance & Biomass (1968-1999)")
 ```
+
+```{r}
+library(tidyverse)
+library(plotly)
+
+# 1. 读入数据
+bio <- read.csv("data/BIOTIME_raw_data_232.csv")
+
+# 2. 找出总 abundance 最高的前 10 个物种
+top10_species <- bio %>%
+  group_by(valid_name) %>%
+  summarise(total_abundance = sum(ABUNDANCE, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 10) %>%
+  pull(valid_name)
+
+# 3. 保留前10物种的原始记录，不做 yearly summary
+plot_data <- bio %>%
+  filter(valid_name %in% top10_species) %>%
+  filter(!is.na(ABUNDANCE), !is.na(BIOMAS), !is.na(YEAR)) %>%
+  filter(ABUNDANCE > 0, BIOMAS > 0)
+
+# 4. 画图：保持老师第一段的结构
+base2 <- plot_ly(
+  data = plot_data,
+  x = ~ABUNDANCE,
+  y = ~BIOMAS,
+  color = ~valid_name,
+  colors = "Set2"
+) %>%
+  add_markers(
+    marker = list(size = 5, opacity = 0.18),
+    showlegend = TRUE,
+    hoverinfo = "skip"
+  ) %>%
+  add_markers(
+    frame = ~YEAR,
+    marker = list(size = 8, opacity = 1),
+    hovertemplate = paste(
+      "Species: %{customdata}<br>",
+      "Abundance: %{x}<br>",
+      "Biomass: %{y}<br>",
+      "Year: %{frame}<extra></extra>"
+    ),
+    customdata = ~valid_name
+  ) %>%
+  layout(
+    xaxis = list(title = "Abundance", type = "log"),
+    yaxis = list(title = "Biomass", type = "log"),
+    legend = list(title = list(text = "Species"))
+  ) %>%
+  animation_opts(1000, redraw = FALSE) %>%
+  animation_slider(currentvalue = list(prefix = "YEAR: "))
+
+base2
+```
