@@ -559,10 +559,10 @@ p_anim_map_one <- p_static +
 # -----------------------------
 animate(
   p_anim_map_one,
-  nframes = length(levels(spatial_data$YEAR)) * 4,
-  fps = 3,
-  width = 1000,
-  height = 650,
-  renderer = gifski_renderer("top3_species_spatial_one_map_small.gif")
+  nframes = length(levels(spatial_data$YEAR)) * 12,
+  fps = 6,
+  width = 700,
+  height = 420,
+  #renderer = gifski_renderer("top3_species_spatial_one_map_small.gif")
 )
 ```
