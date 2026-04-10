@@ -490,63 +490,15 @@ base2
 ```
 
 ```{r}
-library(dplyr)
-library(ggplot2)
-library(gganimate)
-library(gifski)
-library(transformr)
-library(maps)
-
-# 检查 top3 是否都还在
-print(
-  bio_top3 %>%
-    count(valid_name, sort = TRUE)
-)
-
-# 只保留有空间信息的数据
-spatial_data <- bio_top3 %>%
-  filter(
-    !is.na(LATITUDE),
-    !is.na(LONGITUDE),
-    !is.na(YEAR)
-  )
-
-# 检查空间数据里还有哪些物种
-print(
-  spatial_data %>%
-    count(valid_name, sort = TRUE)
-)
-
-print(
-  spatial_data %>%
-    group_by(valid_name) %>%
-    summarise(
-      min_lon = min(LONGITUDE),
-      max_lon = max(LONGITUDE),
-      min_lat = min(LATITUDE),
-      max_lat = max(LATITUDE),
-      min_year = min(YEAR),
-      max_year = max(YEAR),
-      n = n(),
-      .groups = "drop"
-    )
-)
-
-# 自动地图范围
-x_min <- min(spatial_data$LONGITUDE) - 1
-x_max <- max(spatial_data$LONGITUDE) + 1
-y_min <- min(spatial_data$LATITUDE) - 1
-y_max <- max(spatial_data$LATITUDE) + 1
-
-world_map <- map_data("world")
-
-p_anim_map_one <- ggplot() +
+# -----------------------------
+# Static map
+# -----------------------------
+p_static <- ggplot() +
   geom_polygon(
     data = world_map,
     aes(x = long, y = lat, group = group),
-    fill = "grey90",
-    color = "grey60",
-    linewidth = 0.2
+    fill = "grey95",
+    color = "grey80"
   ) +
   geom_point(
     data = spatial_data,
@@ -555,41 +507,62 @@ p_anim_map_one <- ggplot() +
       y = LATITUDE,
       color = valid_name
     ),
-    alpha = 0.8,
-    size = 3
+    alpha = 0.45,
+    size = 2.5
   ) +
   scale_color_manual(
     values = c(
-      "Champsocephalus gunnari" = "#66c2a5",
-      "Channichthys rhinoceratus" = "#fc8d62",
-      "Pleuragramma antarcticum" = "#8da0cb"
+      "Champsocephalus gunnari" = "#4DB6A7",
+      "Channichthys rhinoceratus" = "#F4A3A3",
+      "Pleuragramma antarcticum" = "#7B8FD3"
     ),
     drop = FALSE
   ) +
   coord_cartesian(
-    xlim = c(x_min, x_max),
-    ylim = c(y_min, y_max)
+    xlim = c(40, 110),
+    ylim = c(-71, -49)
   ) +
   labs(
-    title = "Spatial Distribution of Top 3 Species in Year: {closest_state}",
+    title = "Spatial Distribution of Top 3 Species",
     x = "Longitude",
     y = "Latitude",
     color = "Species"
   ) +
-  theme_minimal(base_size = 14) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    panel.grid.minor = element_blank()
+  )
+
+# 先看静态图
+p_static
+```
+
+```{r}
+# -----------------------------
+# Animated map
+# -----------------------------
+p_anim_map_one <- p_static +
+  labs(
+    title = "Spatial Distribution of Top 3 Species in Year: {closest_state}"
+  ) +
   transition_states(
     YEAR,
     transition_length = 1,
-    state_length = 1
+    state_length = 1,
+    wrap = FALSE
   ) +
   ease_aes("linear")
 
+# -----------------------------
+# Render GIF
+# -----------------------------
 animate(
   p_anim_map_one,
-  nframes = length(unique(spatial_data$YEAR)) * 6,
-  fps = 4,
+  nframes = length(levels(spatial_data$YEAR)) * 4,
+  fps = 3,
   width = 1000,
   height = 650,
-  renderer = gifski_renderer("top3_species_spatial_one_map.gif")
+  renderer = gifski_renderer("top3_species_spatial_one_map_small.gif")
 )
 ```
