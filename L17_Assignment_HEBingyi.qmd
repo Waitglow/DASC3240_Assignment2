@@ -631,159 +631,6 @@ p <- ggplotly(g)
 
 ```{r}
 library(ggplot2)
-library(gganimate)
-library(maps)
-library(readr)
-
-df <- read_csv("data/BIOTIME_raw_data_192.csv")
-world_map <- map_data("world")
-
-g_clean <- ggplot() +
-  geom_polygon(
-    data = world_map,
-    aes(x = long, y = lat, group = group),
-    fill = "grey95",
-    color = "grey80",
-    linewidth = 0.2
-  ) +
-  geom_point(
-    data = df,
-    aes(x = LONGITUDE, y = LATITUDE),
-    color = "#2C7FB8",
-    size = 2,
-    alpha = 0.6
-  ) +
-  coord_cartesian(
-    xlim = c(55, 105),
-    ylim = c(-72, -58)
-  ) +
-  labs(
-    title = "Whale Observations in Year: {frame_time}",
-    x = "Longitude",
-    y = "Latitude"
-  ) +
-  theme_minimal() +
-  theme(
-    panel.grid.minor = element_blank(),
-    plot.title = element_text(size = 14, face = "bold")
-  ) +
-  transition_time(YEAR) +
-  ease_aes("linear")
-
-animate(g_clean, nframes = 100, fps = 8, width = 900, height = 500)
-```
-
-```{r}
-library(gganimate)
-library(maps)
-world_map <- map_data("world")
-
-g2<- ggplot() +
-  geom_polygon(data = world_map, 
-               aes(long, lat, group = group), 
-               fill = "gray90", color = "white") +
-  geom_density_2d_filled(data = df,aes(x = LONGITUDE, y = LATITUDE, 
-                                       fill = after_stat(level)), 
-                                       alpha = 0.7, bins = 20) +
-  coord_sf(xlim = c(-180, 180), ylim = c(-90, -50)) +
-  labs(title = "Year: {round(frame_time)}",
-       x = "Longitude", y = "Latitude") +
-    theme_minimal() +
-  transition_time(YEAR) +
-    enter_fade() + 
-    exit_fade()
-
-animate(g2,nframes=100,fps = 8,width = 800,height = 600)
-```
-
-```{r}
-library(ggplot2)
-library(gganimate)
-library(maps)
-library(readr)
-
-df <- read_csv("data/BIOTIME_raw_data_192.csv")
-world_map <- map_data("world")
-
-g_heat <- ggplot() +
-  # 底图
-  geom_polygon(
-    data = world_map,
-    aes(x = long, y = lat, group = group),
-    fill = "#F7F8FA",
-    color = "#D9DDE3",
-    linewidth = 0.2
-  ) +
-  
-  # 柔和热力层
-  stat_density_2d(
-    data = df,
-    aes(
-      x = LONGITUDE,
-      y = LATITUDE,
-      fill = after_stat(density),
-      alpha = after_stat(density)
-    ),
-    geom = "raster",
-    contour = FALSE,
-    n = 200
-  ) +
-  
-  # 热力图颜色
-  scale_fill_gradientn(
-  colours = c(
-    "#3B4CC0",  # 蓝
-    "#5EC962",  # 绿
-    "#FDE725",  # 黄
-    "#F8961E",  # 橙
-    "#D62828"   # 红
-  ),
-  name = "Density of whales"
-) +
-theme(
-  panel.grid.minor = element_blank(),
-  panel.grid.major = element_line(color = "#ECEFF4"),
-  plot.title = element_text(size = 15, face = "bold"),
-  legend.position = "right"
-
-  ) +
-  
-  # 透明度范围
-  scale_alpha(range = c(0.05, 0.75), guide = "none") +
-  
-  coord_cartesian(
-    xlim = c(55, 95),
-    ylim = c(-72, -58)
-  ) +
-  
-  labs(
-    title = "Whale Heatmap in Year: {round(frame_time)}",
-    x = "Longitude",
-    y = "Latitude"
-  ) +
-  
-  theme_minimal() +
-  theme(
-    panel.grid.minor = element_blank(),
-    panel.grid.major = element_line(color = "#ECEFF4", linewidth = 0.3),
-    plot.title = element_text(size = 15, face = "bold"),
-    legend.position = "none"
-  ) +
-  
-  transition_time(YEAR) +
-  ease_aes("cubic-in-out")
-
-animate(
-  g_heat,
-  nframes = 200,
-  fps = 8,
-  width = 400,
-  height = 220
-)
-```
-
-```{r}
-library(ggplot2)
 library(readr)
 library(maps)
 library(MASS)
@@ -865,4 +712,66 @@ ggplot() +
     plot.title = element_text(size = 15, face = "bold"),
     legend.position = "right"
   )
+```
+
+```{r}
+# 1. 计算密度时，大幅增加带宽 h (让孤岛相连)
+density_all <- lapply(years, function(yr) {
+  df_year <- df_clean %>% filter(YEAR == yr)
+  if(nrow(df_year) < 2) return(NULL)
+
+  dens <- kde2d(
+    x = df_year$LONGITUDE,
+    y = df_year$LATITUDE,
+    n = 100,           # 动画渲染 n=100 足够了，配合插值会很丝滑
+    h = c(6, 2.5),     # 【关键】增大带宽，让点晕染成极光带
+    lims = c(x_min, x_max, y_min, y_max)
+  )
+
+  density_df <- expand.grid(LONGITUDE = dens$x, LATITUDE = dens$y)
+  density_df$density <- as.vector(dens$z)
+  density_df$YEAR <- yr
+  
+  # 统一比例尺：使用全局最大值进行归一化（防止每一帧颜色乱跳）
+  # 假设你已经定义了 global_max <- max(density_all_raw$density)
+  density_df$density_scaled <- density_df$density / global_max
+  density_df
+}) %>% bind_rows()
+
+# 2. 绘图：使用 raster + 强插值
+p_anim <- ggplot() +
+  # 热力层
+  geom_raster(
+    data = density_all,
+    aes(x = LONGITUDE, y = LATITUDE, fill = density_scaled),
+    interpolate = TRUE, # 【关键】开启像素插值，消除割裂感
+    alpha = 0.9
+  ) +
+  # 地图轮廓压在最上面
+  geom_path(
+    data = world_map,
+    aes(x = long, y = lat, group = group),
+    color = "#4D4D4D", # 深灰色线条
+    linewidth = 0.3
+  ) +
+  coord_cartesian(xlim = c(x_min, x_max), ylim = c(y_min, y_max)) +
+  scale_fill_gradientn(
+    colours = c(
+      "#A89FCA", # 柔和淡紫色背景
+      "#5C6BC0", "#4FC3F7", "#66C2A5", "#A6D96A", "#FDE725"
+    ),
+    name = "Relative density",
+    limits = c(0, 1) # 固定刻度范围
+  ) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "#FAFBFD", color = NA),
+    plot.title = element_text(size = 18, face = "bold"),
+    legend.position = "right"
+  ) +
+  transition_states(YEAR, transition_length = 3, state_length = 2) +
+  ease_aes("sine-in-out") # 使用正弦缓动，让流动看起来更优雅
+
+# 渲染
+animate(p_anim, nframes = length(years) * 10, fps = 10, width = 800, height = 500)
 ```
