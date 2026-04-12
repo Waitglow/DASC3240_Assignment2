@@ -606,45 +606,91 @@ animate(
 ```
 
 ```{r}
-library(leaflet)
-library(readr)
-library(tidyverse)
-library(gganimate)
-library(plotly)
-
-df <- read_csv("data/BIOTIME_raw_data_192.csv")
-
-
-g <- ggplot(df, aes(YEAR, ABUNDANCE, color = valid_name)) +
-  geom_point(size=1, alpha=0.2) +
-  facet_wrap(~ valid_name,nrow = 3, ncol = 2) + 
-  labs(title="the number of whales in Antarctica varies with the years") +
-  theme_minimal()+
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-    strip.text = element_text(size = 8),
-    legend.position = "right"
-  )
-  
-p <- ggplotly(g)
-```
-
-```{r}
 library(ggplot2)
 library(readr)
+library(dplyr)
 library(maps)
 library(MASS)
 
-# 读数据
-df <- read_csv("data/BIOTIME_raw_data_192.csv")
+# -----------------------------
+# Step 1: 读数据
+# -----------------------------
+df <- read_csv("data/BIOTIME_raw_data_232.csv", show_col_types = FALSE)
 
-# 世界地图
+# -----------------------------
+# Step 2: 清洗数据
+# -----------------------------
+df <- df %>%
+  filter(
+    !is.na(valid_name),
+    !is.na(ABUNDANCE),
+    !is.na(BIOMAS),
+    !is.na(YEAR),
+    !is.na(LATITUDE),
+    !is.na(LONGITUDE),
+    ABUNDANCE > 0,
+    BIOMAS > 0
+  )
+
+# -----------------------------
+# Step 3: 找 Top 3 species
+# -----------------------------
+top3_names <- df %>%
+  group_by(valid_name) %>%
+  summarise(
+    total_abundance = sum(ABUNDANCE, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 3) %>%
+  pull(valid_name)
+
+print(top3_names)
+
+# -----------------------------
+# Step 4: 只保留 Top 3 species
+# -----------------------------
+df <- df %>%
+  filter(valid_name %in% top3_names)
+
+# -----------------------------
+# Step 5: 选年份
+# 如果 1934 没有数据，就自动改成第一个有数据的年份
+# -----------------------------
+year_selected <- 1934
+
+if (!(year_selected %in% df$YEAR)) {
+  year_selected <- sort(unique(df$YEAR))[1]
+  message(paste("1934 is not available. Using year:", year_selected))
+}
+
+df_year <- df %>%
+  filter(
+    YEAR == year_selected,
+    !is.na(LONGITUDE),
+    !is.na(LATITUDE)
+  )
+
+# -----------------------------
+# Step 6: 防止 kde2d() 报错
+# 至少要有足够点数，而且经纬度不能都一样
+# -----------------------------
+if (nrow(df_year) < 5) {
+  stop("Not enough data points in this year for density estimation.")
+}
+
+if (length(unique(df_year$LONGITUDE)) < 2 || length(unique(df_year$LATITUDE)) < 2) {
+  stop("Longitude or Latitude does not vary enough for density estimation.")
+}
+
+# -----------------------------
+# Step 7: 世界地图
+# -----------------------------
 world_map <- map_data("world")
 
-# 如果你想先看某一年，例如 1934
-df_year <- df[df$YEAR == 1934, ]
-
-# 计算二维核密度
+# -----------------------------
+# Step 8: 计算二维核密度
+# -----------------------------
 dens <- kde2d(
   x = df_year$LONGITUDE,
   y = df_year$LATITUDE,
@@ -652,79 +698,79 @@ dens <- kde2d(
   lims = c(55, 95, -72, -58)
 )
 
-# 转成数据框
+# -----------------------------
+# Step 9: 转成数据框
+# -----------------------------
 density_df <- expand.grid(
   LONGITUDE = dens$x,
   LATITUDE = dens$y
 )
+
 density_df$density <- as.vector(dens$z)
 
-# 分成 20 个区间，生成你要的区间型 legend
+# 分成 20 个区间
 density_df$level <- cut(
   density_df$density,
   breaks = 20,
   include.lowest = TRUE
 )
 
-# 颜色
-my_cols <- colorRampPalette(c(
-  "#6A3D9A",  # 紫
-  "#5C6BC0",  # 蓝紫
-  "#4FC3F7",  # 蓝
-  "#66C2A5",  # 青绿
-  "#A6D96A",  # 绿
-  "#D9EF8B",  # 黄绿
-  "#FDE725"   # 黄
-))(20)
-
-# 画图
+# -----------------------------
+# Step 10: 画图
+# -----------------------------
 ggplot() +
   geom_polygon(
     data = world_map,
     aes(x = long, y = lat, group = group),
-    fill = "#F7F8FA",
-    color = "#D9DDE3",
+    fill = "grey90",
+    color = "grey70",
     linewidth = 0.2
   ) +
-  geom_raster(
+  geom_tile(
     data = density_df,
     aes(x = LONGITUDE, y = LATITUDE, fill = level),
-    alpha = 0.75
+    alpha = 0.7
   ) +
   coord_cartesian(
     xlim = c(55, 95),
     ylim = c(-72, -58)
   ) +
-  scale_fill_manual(
-    values = my_cols,
-    name = "level",
-    drop = FALSE
-  ) +
   labs(
-    title = "Whale Heatmap in Year: 1934",
+    title = paste("Top 3 Species Heatmap in Year:", year_selected),
     x = "Longitude",
-    y = "Latitude"
+    y = "Latitude",
+    fill = "Density"
   ) +
   theme_minimal() +
   theme(
-    panel.grid.minor = element_blank(),
-    panel.grid.major = element_line(color = "#ECEFF4"),
-    plot.title = element_text(size = 15, face = "bold"),
-    legend.position = "right"
+    plot.title = element_text(size = 18, face = "bold")
   )
 ```
 
 ```{r}
-# 1. 计算密度时，大幅增加带宽 h (让孤岛相连)
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(maps)
+library(MASS)
+library(gganimate)
+library(gifski)
+
+# -----------------------------
+# Step 1: 读数据
+# -----------------------------
+df_raw <- read_csv("data/BIOTIME_raw_data_232.csv", show_col_types = FALSE)
+world_map <- map_data("world")
+
+# 1. 计算密度：增加带宽 h，让边缘“晕开”
 density_all <- lapply(years, function(yr) {
-  df_year <- df_clean %>% filter(YEAR == yr)
-  if(nrow(df_year) < 2) return(NULL)
+  df_year <- df_top3 %>% filter(YEAR == yr)
+  if(nrow(df_year) < 5) return(NULL)
 
   dens <- kde2d(
-    x = df_year$LONGITUDE,
-    y = df_year$LATITUDE,
-    n = 100,           # 动画渲染 n=100 足够了，配合插值会很丝滑
-    h = c(6, 2.5),     # 【关键】增大带宽，让点晕染成极光带
+    x = df_year$LONGITUDE, y = df_year$LATITUDE,
+    n = 150,           # 提高网格密度，让画面更细腻
+    h = c(7, 3),       # 【关键】调大带宽，让热力像烟雾一样散开，消除“补丁感”
     lims = c(x_min, x_max, y_min, y_max)
   )
 
@@ -732,46 +778,70 @@ density_all <- lapply(years, function(yr) {
   density_df$density <- as.vector(dens$z)
   density_df$YEAR <- yr
   
-  # 统一比例尺：使用全局最大值进行归一化（防止每一帧颜色乱跳）
-  # 假设你已经定义了 global_max <- max(density_all_raw$density)
+  # 统一归一化
   density_df$density_scaled <- density_df$density / global_max
-  density_df
+  
+  # 【美化处理：软裁切】
+  # 之前硬切 0.05 会导致边缘很丑。现在我们不设为 NA，
+  # 而是让它自然过渡，稍后在 scale_fill 里处理透明度。
+  return(density_df)
 }) %>% bind_rows()
 
-# 2. 绘图：使用 raster + 强插值
+# 2. 绘图：优化颜色和渐变
 p_anim <- ggplot() +
   # 热力层
   geom_raster(
     data = density_all,
     aes(x = LONGITUDE, y = LATITUDE, fill = density_scaled),
-    interpolate = TRUE, # 【关键】开启像素插值，消除割裂感
-    alpha = 0.9
+    interpolate = TRUE, # 开启强力插值
+    alpha = 0.8         # 增加一点透明度，让它看起来更轻盈
   ) +
-  # 地图轮廓压在最上面
   geom_path(
     data = world_map,
     aes(x = long, y = lat, group = group),
-    color = "#4D4D4D", # 深灰色线条
-    linewidth = 0.3
+    color = "#555555", linewidth = 0.25 # 减细线条，让背景地图更精致
   ) +
-  coord_cartesian(xlim = c(x_min, x_max), ylim = c(y_min, y_max)) +
+  coord_cartesian(xlim = c(55, 95), ylim = c(-72, -58)) +
+  
+  # 【关键：颜色配方】
+  # 第一个颜色设为和背景相同的白色，但带全透明，
+  # 这样边缘就会慢慢“消失”在背景里，而不是突然断掉。
   scale_fill_gradientn(
     colours = c(
-      "#A89FCA", # 柔和淡紫色背景
-      "#5C6BC0", "#4FC3F7", "#66C2A5", "#A6D96A", "#FDE725"
+      "white",   # 0% 处是白色（对应背景）
+      "#8EC9DE", # 蓝色过渡
+      "#A3AFF7", 
+      "#C6A5F7", 
+      "#F092EC", 
+      "#F886D6"  # 核心粉色
     ),
+    # values 参数控制颜色分布：
+    # 让第一个颜色（白色）占据 0-0.1 的区间，产生自然的羽化效果
+    values = c(0, 0.1, 0.3, 0.5, 0.8, 1), 
     name = "Relative density",
-    limits = c(0, 1) # 固定刻度范围
+    na.value = "transparent"
+  ) +
+  
+  labs(
+    title = "Top 3 Species Heatmap in Year: {closest_state}",
+    x = "Longitude", y = "Latitude"
   ) +
   theme_minimal() +
   theme(
-    panel.background = element_rect(fill = "#FAFBFD", color = NA),
-    plot.title = element_text(size = 18, face = "bold"),
-    legend.position = "right"
+    panel.background = element_rect(fill = "white", color = NA),
+    panel.grid.major = element_line(color = "#F0F0F0"), # 极淡的网格线
+    plot.title = element_text(size = 18, face = "bold", family = "sans")
   ) +
-  transition_states(YEAR, transition_length = 3, state_length = 2) +
-  ease_aes("sine-in-out") # 使用正弦缓动，让流动看起来更优雅
+  # 慢速移动设置
+  transition_states(YEAR, transition_length = 6, state_length = 3) + 
+  ease_aes("quintic-in-out") # 使用更平滑的缓动函数
 
-# 渲染
-animate(p_anim, nframes = length(years) * 10, fps = 10, width = 800, height = 500)
+# 3. 渲染
+animate(
+  p_anim, 
+  nframes = length(years) * 15, 
+  fps = 10,
+  width = 800, height = 500,
+  #renderer = gifski_renderer("beauty_whale_aurora.gif")
+)
 ```
