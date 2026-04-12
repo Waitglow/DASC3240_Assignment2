@@ -104,6 +104,18 @@ Weaknesses
 Too many facets may make the chart look small in some layouts. Hover information only appears in interactive mode, not in static images. Some points still overlap in high-density areas.
 :::
 
+::: callout
+I also choose heatmap. This is something I started after i finished the aniimation.I found the animation cannot tell us which field has the most whale directly. So this map makes people to know in which sea areas these types of whales are accustomed to showing up,making it easier for people to find them.
+
+Strengths
+
+Clear species distribution, easy to compare.Hotspots obvious, helpful for field search.
+
+Weaknesses
+
+Over-smoothing may blur real positions.Annual changes not obvious in animation.Hard to observe overall distribution.
+:::
+
 Note: At least one plot is required, but multiple plots are allowed
 
 ::: callout-important
@@ -113,7 +125,13 @@ Note: At least one plot is required, but multiple plots are allowed
 ::: callout
 ### Your answer is here
 
+About interactive faceted scatter plot
+
 The purpose of this visualization is to show the temporal trend and spatial distribution of whale abundance in Antarctica, compare population differences among species, and help viewers understand how whale counts have changed over decades. It aims to reveal patterns that are difficult to see in a static graph using interactive and faceted plots.
+
+About heatmap
+
+To identify the distribution hotspots of different whale species by longitude and latitude, so as to provide a reference for future whale survey and conservation work.
 :::
 
 Note: If you want to specify setting for a code chunk, you can use `#|` for each option (for example, `#| echo: true`). Rmarkdown code chunk still works (for example, `{r echo = true}`), but Quarto style is recommended.
@@ -122,8 +140,6 @@ Note: If you want to specify setting for a code chunk, you can use `#|` for each
 #| echo: true
 # YOUR CODE HERE
 # xxxxx
-library(leaflet)
-library(readr)
 library(tidyverse)
 library(gganimate)
 library(plotly)
@@ -131,7 +147,7 @@ library(plotly)
 df <- read_csv("C:/Users/ZhangChuxi/OneDrive - HKUST Connect/桌面/Assignment2/DASC3240_Assignment2/data/BIOTIME_raw_data_192.csv")
 
 
-g <- ggplot(df, aes(YEAR, ABUNDANCE, color = valid_name)) +
+g1<- ggplot(df, aes(YEAR, ABUNDANCE, color = valid_name)) +
   geom_point(size=1, alpha=0.2) +
 #to make it more beautiful by arrange it 2x3
   facet_wrap(~ valid_name,nrow = 3, ncol = 2) + 
@@ -144,8 +160,63 @@ g <- ggplot(df, aes(YEAR, ABUNDANCE, color = valid_name)) +
     legend.position = "right"
   )
   
-p <- ggplotly(g)
-p
+p1 <- ggplotly(g1)
+p1
+```
+
+```{r}
+#load the map
+world_map <- map_data("world")
+  
+g2<-ggplot() +
+#draw the heatmap
+  stat_density_2d(
+    data = df,
+    aes(x = LONGITUDE, y = LATITUDE, fill = after_stat(level)),
+    geom = "polygon",
+    contour = TRUE,
+    n = 500,             
+    h = c(2.2, 2.2),       
+    bins = 100,          
+    alpha = 0.8
+  ) +
+#draw the map
+  geom_polygon(data = world_map,
+               aes(x = long, y = lat, group = group), 
+               fill = "grey90", color = "white", linewidth = 0.1) +
+  
+# focus on South Pole
+  coord_cartesian(xlim = c(55, 105), ylim = c(-72, -50)) +
+  facet_wrap(~ valid_name, ncol = 3)+
+#make it more beautiful
+  scale_fill_gradientn(
+    colours = c(
+      "transparent",     
+      "#7E7BB9",         
+      "#5C6BC0",         
+      "#4FC3F7",         
+      "#66C2A5",         
+      "#FDE725"          
+    ),
+    name = "Relative density"
+  ) +
+  
+  labs(
+    title = "Whale Heatmap ",
+    x = "Longitude", y = "Latitude"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "#ECEFF4", linewidth = 0.3),
+    plot.title = element_text(size = 18, face = "bold"),
+    legend.key.height = unit(1.2, "cm"), 
+    legend.text = element_text(size = 8)
+  ) 
+p2 <- ggplotly(g2)
+p2
 ```
 
 ### Animation using `gganimate`
@@ -198,7 +269,7 @@ library(gganimate)
 #load the map
 world_map <- map_data("world")
 
-p2 <- ggplot() +
+p3 <- ggplot() +
 #draw the map
   geom_polygon(data = world_map,
                aes(x = long, y = lat, group = group), 
@@ -220,7 +291,7 @@ p2 <- ggplot() +
   theme_minimal()
 
 #make animation
-p_anim <- p2 +
+p_anim <- p3 +
   
   labs(title = "Spatial Distribution of Species in Year: {closest_state}" ) +
   
@@ -235,9 +306,7 @@ animate(p_anim,nframes = 400,fps = 20,width = 800,height = 600)
 ```
 
 ```{r}
-library(ggplot2)
-library(gganimate)
-library(maps)
+
 
 # load the information
 world_map <- map_data("world")
@@ -297,6 +366,6 @@ p_anim2 <- ggplot() +
   ease_aes("cubic-in-out")
 
 
-animate(p_anim, nframes = 200,fps = 5,
+animate(p_anim2, nframes = 200,fps = 5,
         width = 800,height = 500,res = 100)
 ```
