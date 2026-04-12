@@ -21,7 +21,7 @@ execute:
 Students may use generative AI tools during assignment, for example, to check and improve code, provided that the content is original and reflects the student's own contributions. If generative AI is used, students must declare its use in the box below. An example statement is: “*During the assignment, I used \[XXXX\] to \[XXXX\]. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.”*
 
 ::: callout
-xxxxxxxxxxxxxx
+*During the assignment, I used deepseek to help me understand the requirment. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.*
 :::
 
 # Dataset
@@ -67,11 +67,11 @@ BIOTIME (CC0) <https://biotime.st-andrews.ac.uk/usageGuidelines.php>
 
 *What is the dataset about?*
 
-It is about Balaenoptera bonaerensis's abundance and location,including when and where was it discovered and how many were there.
+It is about different whales' abundance and location,including when and where was it discovered and how many were there.
 
 *What variables are included in the data?*
 
-year,latitude,longitude,abundance
+year,latitude,longitude,abundance,valid_name
 
 *How was the data taken/measured?*
 
@@ -87,7 +87,21 @@ It is from BIOTIME database.
 ::: callout
 ### Your answer is here
 
-xxxxxxxxxxxxxx
+I chose an interactive faceted scatter plot using ggplot2 and plotly,which clearly reveals how population counts change over time.
+
+At first i would like to use a map,but i found it is too unclear,even my computer go wrong because there are too many points, so i decide to try points.After a lot of thinking, I found that i am curious about when all kinds of whales were discovered. I ask deepseek whether it is deserved to explore.It answer its ok. So i do it.
+
+Then i try to use plotly,but the six different whales in a picture is too unclear and ugly too.so i try to use facet_wrap to show 6 species respectively,which is more clear.The picture is more clear but the year is too a lot makes it too crowded.So i learn from deepseek about angle and words sizes to make it more beautiful.
+
+Then it is successful!!!!!
+
+Strengths
+
+Faceting reduces overlap and makes comparison across species clear. Interactive plot allows zooming, panning, and hovering to view exact values. Transparent points avoid overcrowding and show data density. Clear labels and titles improve readability.
+
+Weaknesses
+
+Too many facets may make the chart look small in some layouts. Hover information only appears in interactive mode, not in static images. Some points still overlap in high-density areas.
 :::
 
 Note: At least one plot is required, but multiple plots are allowed
@@ -99,7 +113,7 @@ Note: At least one plot is required, but multiple plots are allowed
 ::: callout
 ### Your answer is here
 
-xxxxxxxxxxxxxx
+The purpose of this visualization is to show the temporal trend and spatial distribution of whale abundance in Antarctica, compare population differences among species, and help viewers understand how whale counts have changed over decades. It aims to reveal patterns that are difficult to see in a static graph using interactive and faceted plots.
 :::
 
 Note: If you want to specify setting for a code chunk, you can use `#|` for each option (for example, `#| echo: true`). Rmarkdown code chunk still works (for example, `{r echo = true}`), but Quarto style is recommended.
@@ -108,6 +122,28 @@ Note: If you want to specify setting for a code chunk, you can use `#|` for each
 #| echo: true
 # YOUR CODE HERE
 # xxxxx
+library(leaflet)
+library(readr)
+library(tidyverse)
+library(gganimate)
+library(plotly)
+
+df <- read_csv("C:/Users/ZhangChuxi/OneDrive - HKUST Connect/桌面/Assignment2/DASC3240_Assignment2/data/BIOTIME_raw_data_192.csv")
+
+
+g <- ggplot(df, aes(YEAR, ABUNDANCE, color = valid_name)) +
+  geom_point(size=1, alpha=0.2) +
+  facet_wrap(~ valid_name,nrow = 3, ncol = 2) + 
+  labs(title="the number of whales in Antarctica varies with the years") +
+  theme_minimal()+
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    strip.text = element_text(size = 8),
+    legend.position = "right"
+  )
+  
+p <- ggplotly(g)
+p
 ```
 
 ### Animation using `gganimate`
@@ -119,7 +155,19 @@ Note: If you want to specify setting for a code chunk, you can use `#|` for each
 ::: callout
 ### Your answer is here
 
-xxxxxxxxxxxxxx
+I choose Scatter plot animation and Density heatmap animation.
+
+The animated scatter plot is used to show the exact locations of individual whale observations and how they change over time.It clearly distinguishes different species by color, allowing us to see which species appear where and when, and observe shifts in their spatial distribution year by year.
+
+The kernel density heatmap animation focuses on identifying high‑density hotspots of whale occurrence.It reduces visual clutter from overlapping points and highlights where whales are most concentrated, making overall distribution patterns and changes in aggregation areas much easier to interpret.
+
+Animated Scatter Plot Strengths Clearly shows individual observation locations and allows tracking of spatial shifts over time. Uses color to distinguish different species, supporting species-level comparison. Preserves all original point information without aggregation or distortion. Animation is smooth and easy to follow year by year.
+
+Animated Scatter Plot Weaknesses Points overlap heavily in high-density areas, making patterns hard to see. Too many transparent points can look messy and reduce readability. Does not highlight hotspots effectively.
+
+Kernel Density Heatmap Animation Strengths Effectively shows distribution hotspots and reduces overlap issues. Provides a clear overview of where whales are concentrated. Visual pattern is strong and easy to interpret at a glance. Cleaner and more professional for geographic temporal data.
+
+Kernel Density Heatmap Animation Weaknesses Hides individual locations and exact observation counts. Sensitive to binning and bandwidth choices. Cannot distinguish between different species in one map.
 :::
 
 Note: At least one animation is required, but multiple animations are allowed
@@ -131,25 +179,206 @@ Note: At least one animation is required, but multiple animations are allowed
 ::: callout
 ### Your answer is here
 
-xxxxxxxxxxxxxx
+The scatter plot shows the exact locations of different species year by year, to observe where and when each species appears.
+
+The heatmap shows the overall density and hotspots of whales, making concentration areas and their changes over time much clearer.
+
+Together, they show both detailed species information and overall distribution patterns, providing a complete analysis of spatial-temporal changes.
 :::
 
 ```{r}
 # YOUR CODE HERE
 # xxxxx
-library(leaflet)
-library(readr)
-library(tidyverse)
+
+
+# 4. 地图显示范围
+x_min <- 55
+x_max <- 95
+y_min <- -72
+y_max <- -58
+
+
+years <- sort(unique(df_clean$YEAR))
+
+
+density_all <- lapply(years, function(yr) {
+  df_year <- df_clean %>% filter(YEAR == yr)
+
+  dens <- kde2d(
+    x = df_year$LONGITUDE,
+    y = df_year$LATITUDE,
+    n = 120,                 
+    h = c(3, 1.2),          
+    lims = c(x_min, x_max, y_min, y_max)
+  )
+
+  density_df <- expand.grid(
+    LONGITUDE = dens$x,
+    LATITUDE  = dens$y
+  )
+
+  density_df$density <- as.vector(dens$z)
+  density_df$YEAR <- yr
+  density_df
+}) %>%
+  bind_rows()
+
+# 7. 用全局 density 分段，保证每一帧 legend 一致
+density_all$level <- cut(
+  density_all$density,
+  breaks = 18,
+  include.lowest = TRUE
+)
+
+# 8. 配色：和你图里这种接近
+my_cols <- colorRampPalette(c(
+  "#6A3D9A",  # 紫
+  "#5C6BC0",  # 蓝紫
+  "#4FC3F7",  # 蓝
+  "#66C2A5",  # 青绿
+  "#A6D96A",  # 绿
+  "#D9EF8B",  # 黄绿
+  "#FDE725"   # 黄
+))(20)
+
+# 9. 作图
+p_anim <- ggplot() +
+  geom_polygon(
+    data = world_map,
+    aes(x = long, y = lat, group = group),
+    fill = "#F3F4F6",
+    color = "#D9DDE3",
+    linewidth = 0.2
+  ) +
+  geom_raster(
+    data = density_all,
+    aes(x = LONGITUDE, y = LATITUDE, fill = level),
+    interpolate = TRUE
+  ) +
+  coord_cartesian(
+    xlim = c(x_min, x_max),
+    ylim = c(y_min, y_max)
+  ) +
+  scale_fill_manual(
+    values = my_cols,
+    name = NULL,
+    drop = FALSE
+  ) +
+  labs(
+    title = "Whale Heatmap in Year: {closest_state}",
+    x = "Longitude",
+    y = "Latitude"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "#E5E7EB", linewidth = 0.3),
+    plot.title = element_text(size = 22, face = "bold"),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 12),
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    legend.key.height = unit(0.42, "cm")
+  ) +
+  transition_states(
+    YEAR,
+    transition_length = 2,
+    state_length = 2,
+    wrap = FALSE
+  ) +
+  ease_aes("linear")
+
+animate(
+  p_anim,
+  nframes = length(years) * 8,
+  fps = 4,
+  width = 700,
+  height = 420
+  )
+
+```
+
+```{r}
 library(gganimate)
-library(plotly)
-df <- read_csv("BIOTIME_raw_data_192.csv")
+library(maps)
+world_map <- map_data("world")
 
-group_df<-df%>%
-  group_by(YEAR, LATITUDE, LONGITUDE, valid_name) %>%
-  summarise(ABUNDANCE = sum(ABUNDANCE, na.rm = TRUE), .groups = "drop")
+g2<- ggplot() +
+  geom_polygon(data = world_map, 
+               aes(long, lat, group = group), 
+               fill = "gray80", color = "white") +
+  geom_density_2d_filled(data = df,aes(x = LONGITUDE, y = LATITUDE, 
+                                       fill = after_stat(level)), 
+                                       alpha = 0.2, bins = 20) +
+  coord_cartesian(xlim = c(0, 150), ylim = c(-90, -50)) +
+  labs(title = "Year: {round(frame_time)}",
+       x = "Longitude", y = "Latitude") +
+  scale_fill_brewer(palette = "Blues") +
+    theme_minimal() +
+  transition_time(YEAR) 
+    
+animate(g2,nframes=200,fps = 20,width = 800,height = 600)
+```
 
-ggplot(df,aes(x = LONGITUDE, y = LATITUDE, 
-             size = ABUNDANCE, color = ABUNDANCE))
+```{r}
+
+library(maps)
+library(gganimate)
+
+#The scatter plot 
+
+#load the map
+world_map <- map_data("world")
+
+p2 <- ggplot() +
+#draw the map
+  geom_polygon(data = world_map,
+               aes(x = long, y = lat, group = group), 
+               fill = "grey90",color="white") +
+#draw the point about location information  
+  geom_point(data = df, aes(x = LONGITUDE, y = LATITUDE, 
+                            color = valid_name ),
+             alpha = 0.5,size = 2 ) +
+#focus the South Pole,if not do this, the points will be too narrow  
+  coord_cartesian( xlim = c(55, 105),ylim = c(-72, -50) ) +
+
+#make it more beautiful    
+  labs(
+    title = "Distribution Change of Species",
+    x = "Longitude",
+    y = "Latitude",
+    color = "Species"
+  ) +
+  theme_minimal()
+
+#make animation
+p_anim <- p2 +
+  
+  labs(title = "Spatial Distribution of Species in Year: {closest_state}" ) +
+  
+  transition_states(YEAR,transition_length = 1, state_length = 5,
+                    wrap = FALSE ) +
+  ease_aes("linear")
+
+animate(p_anim,nframes = 400,fps = 20,width = 800,height = 600)
+
+
+
+```
+
+```{r}
+
+  p <- ggplot() +
+  geom_polygon(data=world_map, aes(long,lat,group=group), fill="grey90", color="white") +
+  geom_density2d_filled(data=df, aes(x=LONGITUDE, y=LATITUDE), alpha=0.7) +
+  coord_cartesian(xlim=c(55,95), ylim=c(-72,-58)) +
+  labs(title = "Year: {frame_time}") +
+  theme_minimal() +
+  transition_time(YEAR) +  # 按年份动
+  ease_aes("linear")       # 流畅不闪
+
+# 生成动画
+animate(p, nframes=100, fps=8)
 
 
 ```
