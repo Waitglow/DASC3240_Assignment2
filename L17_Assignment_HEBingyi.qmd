@@ -216,7 +216,6 @@ The interactive features make the visualization more useful than a static figure
 Note: If you want to specify setting for a code chunk, you can use `#|` for each option (for example, `#| echo: true`). Rmarkdown code chunk still works (for example, `{r echo = true}`), but Quarto style is recommended.
 
 ```{r}
-#| echo: true
 # YOUR CODE HERE
 # xxxxx
 
@@ -371,6 +370,62 @@ plot_ly(
 
 ```
 
+```{r}
+#| echo: true
+library(tidyverse)
+library(plotly)
+
+# 1. 载入数据
+bio_raw <- read.csv("data/BIOTIME_raw_data_232.csv")
+
+# 2. 锁定 Top 3 物种
+top3_names <- bio_raw %>%
+  group_by(valid_name) %>%
+  summarise(total_abundance = sum(ABUNDANCE, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 3) %>%
+  pull(valid_name)
+
+# 3. 准备数据并补全结构（保证图例常驻）
+plot_data <- bio_raw %>%
+  filter(valid_name %in% top3_names) %>%
+  filter(ABUNDANCE > 0, BIOMAS > 0) %>%
+  mutate(valid_name = factor(valid_name, levels = top3_names)) %>%
+  complete(YEAR, valid_name) %>% 
+  arrange(YEAR)
+
+# 4. 绘图：去掉会导致警告的 aspect.ratio
+p <- ggplot(plot_data, aes(x = ABUNDANCE, y = BIOMAS, fill = valid_name)) +
+  geom_point(
+    aes(frame = YEAR), 
+    shape = 21, 
+    color = "white", 
+    size = 2.4, 
+    stroke = 0.4, 
+    alpha = 0.9
+  ) +
+  scale_x_log10() +
+  scale_y_log10() +
+  scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb"), drop = FALSE) +
+  labs(
+    title = "Temporal Dynamics of Top 3 Species",
+    x = "Abundance (Log Scale)",
+    y = "Biomass (Log Scale)",
+    fill = "Species"
+  ) +
+  theme_minimal()
+  # 注意：这里删掉了 theme(aspect.ratio = 0.45)，解决了警告问题
+
+# 5. 转换为 Plotly：在这里手动设置宽和高来实现“拉长”
+# 设置 width 为 1000，height 为 400，比例约为 2.5:1，视觉上会非常扁长
+ggplotly(p, width = 1000, height = 400) %>%
+  layout(
+    margin = list(r = 220, t = 80),
+    legend = list(x = 1.05, y = 0.5, xanchor = "left")
+  ) %>%
+  animation_opts(frame = 1000, redraw = TRUE, transition = 500)
+```
+
 ### Animation using `gganimate`
 
 ::: callout-important
@@ -408,51 +463,6 @@ This visualization also helps highlight whether different species occupy distinc
 
 More broadly, the animation serves as an **explanatory visualization**, allowing viewers to quickly grasp complex spatial–temporal dynamics that would be difficult to interpret from raw data or static figures alone.
 :::
-
-```{r}
-# --- 1. 加载包 ---
-library(tidyverse)
-library(plotly)
-library(crosstalk)
-
-# --- 2. 准备 Shared Data (实现颗粒并行联动的关键) ---
-# 选取前 10 个物种，不汇总，保留所有原始采样颗粒
-top_species <- bio %>%
-  count(valid_name, sort = TRUE) %>%
-  head(3) %>%
-  pull(valid_name)
-
-plot_data <- bio %>%
-  filter(valid_name %in% top_species) %>%
-  filter(ABUNDANCE > 0 & BIOMAS > 0) %>%
-  drop_na(ABUNDANCE, BIOMAS, YEAR)
-
-# 使用 crosstalk 创建共享数据集
-shared_bio <- highlight_key(plot_data, ~valid_name)
-
-# --- 3. 创建两个平行的基础图 ---
-# 图 A: 丰度随年份分布 (颗粒点)
-p1 <- ggplot(shared_bio, aes(x = YEAR, y = ABUNDANCE, color = valid_name)) +
-  geom_jitter(alpha = 0.4, size = 1) + 
-  scale_y_log10() +
-  theme_minimal() +
-  labs(y = "Abundance (Log Scale)", x = "") +
-  theme(legend.position = "none")
-
-# 图 B: 生物量随年份分布 (颗粒点)
-p2 <- ggplot(shared_bio, aes(x = YEAR, y = BIOMAS, color = valid_name)) +
-  geom_jitter(alpha = 0.4, size = 1) + 
-  scale_y_log10() +
-  theme_minimal() +
-  labs(y = "Biomass (Log Scale)", x = "Year") +
-  theme(legend.position = "none")
-
-# --- 4. 合并为并行子图 ---
-# 两个变量在每一年（X轴）同时呈现，完全满足你的并行要求
-subplot(ggplotly(p1), ggplotly(p2), nrows = 2, shareX = TRUE, titleY = TRUE) %>%
-  highlight(on = "plotly_click", off = "plotly_doubleclick", color = "red") %>%
-  layout(title = "Parallel Trends: Abundance & Biomass (1968-1999)")
-```
 
 ```{r}
 # YOUR CODE HERE
