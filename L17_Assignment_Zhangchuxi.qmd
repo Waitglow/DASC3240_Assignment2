@@ -21,7 +21,7 @@ execute:
 Students may use generative AI tools during assignment, for example, to check and improve code, provided that the content is original and reflects the student's own contributions. If generative AI is used, students must declare its use in the box below. An example statement is: “*During the assignment, I used \[XXXX\] to \[XXXX\]. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.”*
 
 ::: callout
-*During the assignment, I used deepseek to help me understand the requirment. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.*
+*During the assignment, I used deepseek to help me understand the requirment and teach me the code about making* Density heatmap animation more beautiful*. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.*
 :::
 
 # Dataset
@@ -133,9 +133,11 @@ df <- read_csv("C:/Users/ZhangChuxi/OneDrive - HKUST Connect/桌面/Assignment2/
 
 g <- ggplot(df, aes(YEAR, ABUNDANCE, color = valid_name)) +
   geom_point(size=1, alpha=0.2) +
+#to make it more beautiful by arrange it 2x3
   facet_wrap(~ valid_name,nrow = 3, ncol = 2) + 
   labs(title="the number of whales in Antarctica varies with the years") +
   theme_minimal()+
+#to make it more beautiful by make the words smaller and sideling to avoid crowded
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
     strip.text = element_text(size = 8),
@@ -187,140 +189,6 @@ Together, they show both detailed species information and overall distribution p
 :::
 
 ```{r}
-# YOUR CODE HERE
-# xxxxx
-
-
-# 4. 地图显示范围
-x_min <- 55
-x_max <- 95
-y_min <- -72
-y_max <- -58
-
-
-years <- sort(unique(df_clean$YEAR))
-
-
-density_all <- lapply(years, function(yr) {
-  df_year <- df_clean %>% filter(YEAR == yr)
-
-  dens <- kde2d(
-    x = df_year$LONGITUDE,
-    y = df_year$LATITUDE,
-    n = 120,                 
-    h = c(3, 1.2),          
-    lims = c(x_min, x_max, y_min, y_max)
-  )
-
-  density_df <- expand.grid(
-    LONGITUDE = dens$x,
-    LATITUDE  = dens$y
-  )
-
-  density_df$density <- as.vector(dens$z)
-  density_df$YEAR <- yr
-  density_df
-}) %>%
-  bind_rows()
-
-# 7. 用全局 density 分段，保证每一帧 legend 一致
-density_all$level <- cut(
-  density_all$density,
-  breaks = 18,
-  include.lowest = TRUE
-)
-
-# 8. 配色：和你图里这种接近
-my_cols <- colorRampPalette(c(
-  "#6A3D9A",  # 紫
-  "#5C6BC0",  # 蓝紫
-  "#4FC3F7",  # 蓝
-  "#66C2A5",  # 青绿
-  "#A6D96A",  # 绿
-  "#D9EF8B",  # 黄绿
-  "#FDE725"   # 黄
-))(20)
-
-# 9. 作图
-p_anim <- ggplot() +
-  geom_polygon(
-    data = world_map,
-    aes(x = long, y = lat, group = group),
-    fill = "#F3F4F6",
-    color = "#D9DDE3",
-    linewidth = 0.2
-  ) +
-  geom_raster(
-    data = density_all,
-    aes(x = LONGITUDE, y = LATITUDE, fill = level),
-    interpolate = TRUE
-  ) +
-  coord_cartesian(
-    xlim = c(x_min, x_max),
-    ylim = c(y_min, y_max)
-  ) +
-  scale_fill_manual(
-    values = my_cols,
-    name = NULL,
-    drop = FALSE
-  ) +
-  labs(
-    title = "Whale Heatmap in Year: {closest_state}",
-    x = "Longitude",
-    y = "Latitude"
-  ) +
-  theme_minimal() +
-  theme(
-    panel.grid.minor = element_blank(),
-    panel.grid.major = element_line(color = "#E5E7EB", linewidth = 0.3),
-    plot.title = element_text(size = 22, face = "bold"),
-    axis.title = element_text(size = 18),
-    axis.text = element_text(size = 12),
-    legend.position = "right",
-    legend.text = element_text(size = 8),
-    legend.key.height = unit(0.42, "cm")
-  ) +
-  transition_states(
-    YEAR,
-    transition_length = 2,
-    state_length = 2,
-    wrap = FALSE
-  ) +
-  ease_aes("linear")
-
-animate(
-  p_anim,
-  nframes = length(years) * 8,
-  fps = 4,
-  width = 700,
-  height = 420
-  )
-
-```
-
-```{r}
-library(gganimate)
-library(maps)
-world_map <- map_data("world")
-
-g2<- ggplot() +
-  geom_polygon(data = world_map, 
-               aes(long, lat, group = group), 
-               fill = "gray80", color = "white") +
-  geom_density_2d_filled(data = df,aes(x = LONGITUDE, y = LATITUDE, 
-                                       fill = after_stat(level)), 
-                                       alpha = 0.2, bins = 20) +
-  coord_cartesian(xlim = c(0, 150), ylim = c(-90, -50)) +
-  labs(title = "Year: {round(frame_time)}",
-       x = "Longitude", y = "Latitude") +
-  scale_fill_brewer(palette = "Blues") +
-    theme_minimal() +
-  transition_time(YEAR) 
-    
-animate(g2,nframes=200,fps = 20,width = 800,height = 600)
-```
-
-```{r}
 
 library(maps)
 library(gganimate)
@@ -367,18 +235,68 @@ animate(p_anim,nframes = 400,fps = 20,width = 800,height = 600)
 ```
 
 ```{r}
+library(ggplot2)
+library(gganimate)
+library(maps)
 
-  p <- ggplot() +
-  geom_polygon(data=world_map, aes(long,lat,group=group), fill="grey90", color="white") +
-  geom_density2d_filled(data=df, aes(x=LONGITUDE, y=LATITUDE), alpha=0.7) +
-  coord_cartesian(xlim=c(55,95), ylim=c(-72,-58)) +
-  labs(title = "Year: {frame_time}") +
+# load the information
+world_map <- map_data("world")
+
+# draw the plot
+p_anim2 <- ggplot() +
+#draw the heatmap
+  stat_density_2d(
+    data = df,
+    aes(x = LONGITUDE, y = LATITUDE, fill = after_stat(level)),
+    geom = "polygon",
+    contour = TRUE,
+    n = 500,             
+    h = c(2.2, 2.2),       
+    bins = 100,          
+    alpha = 0.8
+  ) +
+#draw the map
+  geom_polygon(data = world_map,
+               aes(x = long, y = lat, group = group), 
+               fill = "grey90", color = "white", linewidth = 0.1) +
+  
+# focus on South Pole
+  coord_cartesian(xlim = c(55, 105), ylim = c(-72, -50)) +
+#make it more beautiful
+  scale_fill_gradientn(
+    colours = c(
+      "transparent",     
+      "#7E7BB9",         
+      "#5C6BC0",         
+      "#4FC3F7",         
+      "#66C2A5",         
+      "#FDE725"          
+    ),
+    name = "Relative density"
+  ) +
+  
+  labs(
+    title = "Whale Heatmap in Year: {closest_state}",
+    x = "Longitude", y = "Latitude"
+  ) +
   theme_minimal() +
-  transition_time(YEAR) +  # 按年份动
-  ease_aes("linear")       # 流畅不闪
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "#ECEFF4", linewidth = 0.3),
+    plot.title = element_text(size = 18, face = "bold"),
+    legend.key.height = unit(1.2, "cm"), 
+    legend.text = element_text(size = 8)
+  ) +
+  
+#do animation
+  transition_states(
+    YEAR, transition_length = 2, state_length = 5, wrap = FALSE
+  ) +
+  ease_aes("cubic-in-out")
 
-# 生成动画
-animate(p, nframes=100, fps=8)
 
-
+animate(p_anim, nframes = 200,fps = 5,
+        width = 800,height = 500,res = 100)
 ```
