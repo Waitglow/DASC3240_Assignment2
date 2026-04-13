@@ -1,27 +1,255 @@
 ---
-title: "L17_Assignment_LinZirong"
-author: "LinZirong"
+title: "DASC3240 Assignment 2"
 format: html
-editor: visual
 ---
 
-## Quarto
+**Name: Lin Zirong**
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+**Student ID: 21058282**
 
-## Running Code
+I used Generative AI (e.g., ChatGPT) to write code: *Yes* / No
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+If Yes, how did you use Generative AI? (e.g., I asked ChatGPT to explain the code. I used GitHub Copilot to write the code.)\
+
+I used Gemini to refine my story-telling and explaining functions.
+
+## Dataset
+
+I chose The Palmer penguins dataset by Allison Horst, Alison Hill, and Kristen Gorman.
+
+## Introduction
+
+What is the dataset about? The palmerpenguins dataset is a high-quality alternative to the classic Iris dataset, often used for data exploration and visualization. It contains biological and physical measurements for three different species of penguins observed in the Palmer Archipelago, Antarctica.
+
+How was the data generated? The data were collected and made available by Dr. Kristen Gorman and the Palmer Station, Antarctica LTER (Long Term Ecological Research) Network. The observations were recorded between 2007 and 2009, involving adult foraging penguins near the Palmer Station.
+
+What variables are included? The dataset consists of 344 observations with the following key variables:
+
+● Categorical: species (Adelie, Chinstrap, Gentoo), island (Biscoe, Dream, Torgersen), and sex.
+
+● Numerical (Continuous): bill_length_mm (distance from the base to the tip of the bill), bill_depth_mm (vertical thickness of the bill), flipper_length_mm, and body_mass_g.
+
+● Temporal: year (the year the observation was recorded).
+
+## Plotly (Interactive Plot)
+
+1.  Interactive Scatterplots: Dimensionality and Feature Separability Purpose: I utilized multi-dimensional scatterplots to analyze the correlation between physiological variables (e.g., bill length vs. flipper length).
+
+Insight: By implementing a Crosstalk filter, users can dynamically isolate specific cohorts. This allows for an intuitive exploration of cluster separability, helping us determine which combination of attributes serves as the best predictor for species classification.
+
+2.  Kernel Density Estimation (KDE): Probabilistic Distribution of Body Mass Purpose: To visualize the distribution of penguin weights, I employed density plots as they provide a smooth estimate of the Probability Density Function (PDF).
+
+Critique: While density plots are superior for comparing the "shape" of distributions across species, they involve Kernel Smoothing. A potential disadvantage is that the "smoothing" can slightly obscure the raw frequency peaks or suggest data exists where there are actually gaps (bandwidth bias), making it look slightly "off" compared to the discrete raw samples.
+
+3.  Categorical Bar Charts: Geographic Population Structure Purpose: I chose bar charts (often confused with histograms, but used here for categorical data) to illustrate the geographic distribution of the three species across different islands.
+
+Advantage: This approach is straightforward and highly effective for identifying niche exclusivity (e.g., specific species being isolated to certain islands), providing a clear count-based overview of the population structure.
 
 ```{r}
-1 + 1
+#| echo: true
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(plotly)
+library(palmerpenguins)
+library(crosstalk)
+library(gganimate)
 ```
 
-You can add options to executable code like this
+This visualization isn't just a set of charts; it is a multi-dimensional map of biological niches. By using linked interactions and fixed coordinate systems, It is telling a story of how evolution has "sorted" these three species into distinct physical spaces.
+
+Act I (Bill Length vs. Depth): The Specialist's Trade-off. This plot reveals the Simpson's Paradox. On the surface, it looks like a mess of points. But as you use the filters, you see that while all species have unique bill shapes, they all follow the same internal logic: within a species, a longer bill usually means a deeper bill.
+
+Act II (The Flipper Engine): The Power of Scale. In the plots involving flipper_length_mm, the story changes from "shape" to "scale." You can see that Gentoo penguins are the "heavy cruisers" of the group—their wings are significantly longer, which correlates with their much higher body mass.
+
+Act III (The Gender Mirror): Sexual Dimorphism. By using symbol = \~sex, your story shows that within every species cluster, there are two "sub-clouds." Males are consistently shifted toward the upper-right of every cluster. It tells the viewer that while species defines the territory, sex defines the position within that territory.
 
 ```{r}
-#| echo: false
-2 * 2
+
+penguins_interactive <- penguins %>%
+  drop_na(bill_length_mm, bill_depth_mm, flipper_length_mm, species, sex, year)
+
+
+sd <- SharedData$new(penguins_interactive)
+
+
+filters <- list(
+  filter_checkbox("spec", "Choose Species:", sd, ~species, inline = TRUE),
+  filter_checkbox("sx", "Choose Sex:", sd, ~sex, inline = TRUE)
+)
+
+
+
+
+p1 <- plot_ly(sd,
+              x = ~bill_length_mm,
+              y = ~bill_depth_mm,
+              color = ~species,
+              symbol = ~sex,
+              colors = "Set1",
+              type = "scatter",
+              mode = "markers",
+              marker = list(size = 8, opacity = 0.8),
+              hoverinfo = "text",
+              text = ~paste("Species:", species,
+                            "<br>Sex:", sex,
+                            "<br>Year:", year)) %>%
+  layout(title = "Bill Length vs Bill Depth",
+         xaxis = list(title = "Bill Length (mm)"),
+         yaxis = list(title = "Bill Depth (mm)"),
+         legend = list(orientation = "h", y = -0.2))
+
+
+p2 <- plot_ly(sd,
+              x = ~bill_length_mm,
+              y = ~flipper_length_mm,
+              color = ~species,
+              symbol = ~sex,
+              colors = "Set1",
+              type = "scatter",
+              mode = "markers",
+              marker = list(size = 8, opacity = 0.8),
+              hoverinfo = "text",
+              text = ~paste("Species:", species,
+                            "<br>Sex:", sex,
+                            "<br>Year:", year)) %>%
+  layout(title = "Bill Length vs Flipper Length",
+         xaxis = list(title = "Bill Length (mm)"),
+         yaxis = list(title = "Flipper Length (mm)"),
+         legend = list(orientation = "h", y = -0.2))
+
+
+p3 <- plot_ly(sd,
+              x = ~bill_depth_mm,
+              y = ~flipper_length_mm,
+              color = ~species,
+              symbol = ~sex,
+              colors = "Set1",
+              type = "scatter",
+              mode = "markers",
+              marker = list(size = 8, opacity = 0.8),
+              hoverinfo = "text",
+              text = ~paste("Species:", species,
+                            "<br>Sex:", sex,
+                            "<br>Year:", year)) %>%
+  layout(title = "Bill Depth vs Flipper Length",
+         xaxis = list(title = "Bill Depth (mm)"),
+         yaxis = list(title = "Flipper Length (mm)"),
+         legend = list(orientation = "h", y = -0.2))
+p1 <- ggplotly(p1) %>% 
+  layout(
+    xaxis = list(range = c(30, 60), fixedrange = TRUE), 
+    yaxis = list(range = c(11, 22), fixedrange = TRUE)
+  )
+
+p2 <- ggplotly(p2) %>% 
+  layout(
+    xaxis = list(range = c(30, 60), fixedrange = TRUE), 
+    yaxis = list(range = c(170, 240), fixedrange = TRUE)
+  )
+
+p3 <- ggplotly(p3) %>% 
+  layout(
+    xaxis = list(range = c(11, 22), fixedrange = TRUE), 
+    yaxis = list(range = c(170, 240), fixedrange = TRUE)
+  )
+bscols(
+  widths = c(12, 12),   
+  filters,
+  p1
+)
+
+bscols(
+  widths = c(12, 12),  
+  filters,
+  p2
+)
+
+bscols(
+  widths = c(12, 12),
+  filters,
+  p3
+)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+The density map below shows the weight distribution of penguins. We can see that Adelie and Chinstrap has similar weight mean but the standard deviation of weight of Adelie is higher. The mean of weight of Gentoo is 1350g heavier than other two speices and distribution is much boarder (higher standard deviation.)
+
+```{r}
+g3 <- ggplot(penguins_interactive) + 
+  geom_density(aes(x = body_mass_g, fill = species), alpha=0.25)
+
+ggplotly(g3)
+# Add this to your density plot to highlight the means
+```
+
+The plot below shows the distribution of penguins of three species on three islands. We can see that Adelie penguin live on all three islands and numbers of these penguins on each island is roughly same although Adelie penguins on Dream island is slighly higher. Chinstrap only habitates on Dream island and Gentoo penguins only live on Torgensen island.
+
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+
+ggplot(penguins_interactive, aes(x = species, fill = island)) +
+  geom_bar(position = "dodge") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal() +
+  labs(title = "Species Count by Island",
+       x = "Species",
+       y = "Number of Penguins")
+```
+
+## gganimate
+
+I still use scatterplots but also using transition_state to show how data shifts with progress of time and how the correlation between variables within the same species changes on different islands.
+
+Temporal Consistency: The 3-Year Baseline My first dynamic model tests the stability of morphological clusters over the duration of the study (2007-2009). By mapping Bill Length against Flipper Length and transitioning through the years, I test for short-term phenotypic drift or sampling bias.
+
+Insight: \> The animation reveals high temporal consistency. The distinct clusters (niches) occupied by Adelie, Chinstrap, and Gentoo penguins remain structurally identical from year to year. This proves that the feature separation observed is a deep biological reality, not an artifact of a single anomalous year of data collection.
+
+```{r}
+#| dev: png
+#| message: false
+
+
+library(ggplot2)
+library(gganimate)
+library(palmerpenguins)
+
+
+
+
+k1 <- ggplot(penguins_interactive, aes(x = bill_length_mm, y = `flipper_length_mm`)) + 
+  geom_point(aes(color = species, shape = sex)) + 
+  transition_states(
+    year,
+    transition_length = 2,
+    state_length = 1
+  ) +
+  labs(title = "Year: {closest_state}",
+       x = "Bill Length (mm)",
+       y = "Flipper Length (mm)") +
+  theme_minimal()
+
+k1
+```
+
+By animating linear regression models (geom_smooth) across the three species, we can observe both evolution specialization and correlation stability (if the biological scaling laws remain constant).
+
+Insight -\> The correlation between bill length and weight of chinstrap is low meanwhile that of adelie and gentoo is almost about the same. One of possible explanations is that adelie and gentoo penguins need to be heavier to carry longer bills meanwhile bills of chinstrap penguins are already specialized so they generally have longer bills no matter the body mass.
+
+```{r}
+#| dev: png
+#| message: false
+
+
+p_slope <- ggplot(penguins_interactive, aes(x = bill_length_mm, y = body_mass_g)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 2) +
+  transition_states(species, transition_length = 2, state_length = 2) +
+  labs(title = "Correlation Stability on species: {closest_state}",
+       subtitle = "Is the biological attribute correlations consistent across species?")
+
+animate(p_slope)
+
+p_slope
+```
