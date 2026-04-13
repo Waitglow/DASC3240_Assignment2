@@ -1,0 +1,214 @@
+---
+title: "Assignment II: Group [A]"
+author: "Cheng Wing Him"
+format: 
+  html:
+    toc: true
+    code-fold: false
+    embed-resources: true # <= check here: https://quarto.org/docs/reference/formats/html.html
+execute:
+  echo: true    # <= knitr::opts_chunk$set(echo = TRUE) in Rmarkdown
+  warning: false
+  message: false
+---
+
+# Name
+
+[**Name**]{style="color:red"}**: Cheng Wing Him**
+
+# Generative AI declaration
+
+Students may use generative AI tools during assignment, for example, to check and improve code, provided that the content is original and reflects the student's own contributions. If generative AI is used, students must declare its use in the box below. An example statement is: “*During the assignment, I used \[XXXX\] to \[XXXX\]. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.”*
+
+::: callout
+During the assignment, I used copilot to give ideas, revise and improve codes. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.
+:::
+
+# Dataset
+
+Each group member may choose either of the following dataset:
+
+**Built-in dataset**
+
+-   `palmerpenguins::penguins`
+-   `ggplot2::msleep`
+-   `ggplot2::midwest`
+-   `datasets::quakes`
+
+**Public dataset**
+
+BIOTIME (CC0) <https://biotime.st-andrews.ac.uk/usageGuidelines.php>
+
+-   `BIOTIME_raw_data_192.csv` (uploaded on Canvas) (Whale data from <https://biotime.st-andrews.ac.uk/selectStudy.php?study=192>)
+-   `BIOTIME_raw_data_232.csv` (uploaded on Canvas) (Fish data from <https://biotime.st-andrews.ac.uk/selectStudy.php?study=232>)
+
+# Figures by each group member
+
+### Dataset
+
+::: callout-important
+[Which dataset did you choose?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+`datasets::quakes`
+:::
+
+### Introduction
+
+::: callout-important
+[What is the dataset about? What variables are included in the data? How was the data taken/measured?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+The dataset is about 1000 earthquakes occured near Fiji(South Pacific Ocean) from 1964.
+
+Variables included are (i)lat\
+(ii)long\
+(iii)depth\
+(iv)mag\
+(v)stations
+
+The data was compiled by seismologists at Harvard University.
+:::
+
+### Interactive plot(s) using `plotly`
+
+::: callout-important
+[Please explain which plot type you choose and why. Also, please discuss the strengths and weaknesses of your plot(s).]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+Plot type: Interactive Histogram(because histogram can show distribution of magnitude data)
+
+Strength: By coloring bins differently, frequency of different strength of quakes can be compared easily.
+
+Weakness: A histogram only shows one variable’s distribution. It doesn’t reveal correlations(eg. where does the earthquake occur)
+:::
+
+Note: At least one plot is required, but multiple plots are allowed
+
+::: callout-important
+[What is the purpose of this visualization?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+Divide earthquake occured into three groups(strong,medium and weak), then compare the frequency of them, to see the possibility of a strong earthquake occurred in that plate.
+:::
+
+Note: If you want to specify setting for a code chunk, you can use `#|` for each option (for example, `#| echo: true`). Rmarkdown code chunk still works (for example, `{r echo = true}`), but Quarto style is recommended.
+
+```{r}
+#| echo: true
+# YOUR CODE HERE
+library(plotly)
+
+# Load dataset
+data(quakes)
+
+# Divide Magnitude into three groups (green=weak,yellow=medium,red=strong)
+bins <- list(
+  list(range = c(4.0, 4.9), color = "green", name = "4.0–4.9"),
+  list(range = c(5.0, 5.9), color = "yellow", name = "5.0–5.9"),
+  list(range = c(6.0, 6.4), color = "red", name = "6.0+")
+)
+
+# Build plot with one trace per bin
+p <- plot_ly()
+
+for (b in bins) {
+  p <- add_trace(
+    p,
+    data = subset(quakes, mag >= b$range[1] & mag <= b$range[2]),
+    x = ~mag,
+    type = "histogram",
+    name = b$name,
+    marker = list(color = b$color, line = list(color = "black", width = 1)),
+    hovertemplate = "Magnitude: %{x}<br>Frequency: %{y}<extra></extra>"
+  )
+}
+
+# Cutomize layout and legend
+p <- layout(
+  p,
+  title = "Earthquake Magnitudes by Range",
+  xaxis = list(title = "Magnitude"),
+  yaxis = list(title = "Frequency"),
+  legend = list(title = list(text = "Magnitude Ranges"), traceorder = "normal")
+)
+
+p
+```
+
+### Animation using `gganimate`
+
+::: callout-important
+[Please explain which animation type you choose and why. Also, please discuss the strengths and weaknesses of your animation.]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+Animation type: State transition animation(Ideal for categorical comparisons)
+
+Strength: Each magnitude group is shown in turn, so it easy to compare spatial distributions of weak, medium, and strong quakes.
+
+Weakness: In this dataset magnitude is not strong correlated with position
+:::
+
+Note: At least one animation is required, but multiple animations are allowed
+
+::: callout-important
+[What is the purpose of this visualization?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+Check where has a higher probability to be a stronger earthquake
+:::
+
+```{r}
+# YOUR CODE HERE
+library(ggplot2)
+library(gganimate)
+
+data(quakes)
+
+# Divide magnitudes into groups
+quakes$mag_group <- cut(quakes$mag,
+                        breaks = c(4.0, 5.0, 6.0, 7.0),
+                        labels = c("4.0–4.9", "5.0–5.9", "6.0+"),
+                        right = FALSE)
+
+# Assign sizes to groups
+size_map <- c("4.0–4.9" = 2, "5.0–5.9" = 4, "6.0+" = 6)
+
+# Base plot: color and size by group
+p <- ggplot(quakes, aes(x = long, y = lat,
+                        color = mag_group,
+                        size = mag_group)) +
+  geom_point(alpha = 0.7) +
+  scale_size_manual(values = size_map) +
+  labs(title = "Earthquake Locations of intensity {closest_state}",
+       x = "Longitude", y = "Latitude") +
+  theme_minimal()
+
+# Animate with fade and easing
+anim <- p + transition_states(mag_group,
+                              transition_length = 3,
+                              state_length = 2) +
+  enter_fade() + exit_fade() 
+
+# Render animation
+animate(anim, nframes = 80, fps = 10)
+
+```
