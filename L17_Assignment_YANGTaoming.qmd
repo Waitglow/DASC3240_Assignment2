@@ -195,7 +195,7 @@ ggplotly(g3)
 ::: callout
 ### Your answer is here
 
-plot_4: Distribution of body weight and total sleep duration among mammals with different diets:\
+Animation: Distribution of body weight and total sleep duration among mammals with different diets:\
 Pros and cons: I chose ggplot with gganimate's transition animation. The advantage of transition animation is that it clearly distinguishes different groups, displaying only a single group at a time. Compared to static or interactive plots, it is more intuitive and engaging, while enhancing comparison between groups. The disadvantages are longer loading times and higher resource consumption; groups must be viewed sequentially, making it impossible to see all information at once; exact data values cannot be extracted; and it cannot be displayed in static documents.
 :::
 
