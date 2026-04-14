@@ -99,9 +99,12 @@ Then i try to use plotly,but the six different whales in a picture is too unclea
 
 Then it is successful!!!!!
 
+It is necessary to use plotly instead animation.Because there are too many points,if we put all points in an animation,it will be too crowded,and hard too see anything.In plotly,we can make it bigger to see the points in all years.
+
 ##### Strengths
 
--   Faceting reduces overlap and makes comparison across species clear. - Interactive plot allows zooming, panning, and hovering to view exact values.
+-   Faceting reduces overlap and makes comparison across species clear.
+-   Interactive plot allows zooming, panning, and hovering to view exact values.
 -   Transparent points avoid overcrowding and show data density.
 -   Clear labels and titles improve readability.
 
@@ -115,7 +118,7 @@ Then it is successful!!!!!
 ::: callout
 #### heatmap
 
-I also choose heatmap. This is something I started after i finished the aniimation.I found the animation cannot tell us which field has the most whale directly. So this map makes people to know in which sea areas these types of whales are accustomed to showing up,making it easier for people to find them.
+I also choose heatmap. This is something I started after i finished the aniimation.I found the animation cannot tell us which field has the most whale directly. So this map makes people to know in which sea areas these types of whales are accustomed to showing up,making it easier for people to find them.It is necessary to use plotly instead of animation,because we need know the location of each high density areas in details,that would help arrive it easy.
 
 ##### Strengths
 
@@ -186,6 +189,7 @@ library(gganimate)
 library(plotly)
 
 df <- read_csv("C:/Users/ZhangChuxi/OneDrive - HKUST Connect/桌面/Assignment2/DASC3240_Assignment2/data/BIOTIME_raw_data_192.csv")
+
 #load the map
 
 world_map <- map_data("world")
@@ -269,7 +273,7 @@ I choose Scatter plot animation.Because it is expected to know the locations of 
 
 #### kernel density heatmap animation
 
-I also choose the kernel density heatmap animation.Beacause it can focuses on identifying high‑density hotspots of whale occurrence.which fix the weaknesses of points animation.I think it is necessary.It reduces visual clutter from overlapping points and highlights where whales are most concentrated, making overall distribution patterns and changes in aggregation areas much easier to interpret.
+I also choose the kernel density heatmap animation.Beacause it can focuses on identifying high‑density hotspots of whale occurrence.which fix the weaknesses of points animation.Comparing to the stable plotly,it can show the changes and trends of whales every year clearly!! I think it is necessary.It reduces visual clutter from overlapping points and highlights where whales are most concentrated, making overall distribution patterns and changes in aggregation areas much easier to interpret.
 
 I meet a lot of difficult when i draw this map.First,i use all things i learned in class to draw it but it is very ugly.It has a lot of ugly gray polygon.So i ask deepseek to help me make it more beautiful.I ask to defined the color and make the 0 density in transparency.After make color beautiful i found the pixel count is very low,which is different from what I imagined.By changing and helping,it become beautiful!!!
 
