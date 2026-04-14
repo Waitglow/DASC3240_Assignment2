@@ -99,7 +99,7 @@ All branches were finally merged into the `main` branch by the team leader.
 
 The overall structure of this report was developed collaboratively.
 
--   **Zhang Chuxi** led coordination, task allocation, statistic data,give ideas to members about choosing graph,and final integration
+-   **Zhang Chuxi** led coordination, task allocation, statistic data,design readme format,give ideas to members about choosing graph,and final integration
 -   **HE Bingyi** contributed significantly to repository management, branch organization, and debugging
 
 This division of responsibilities ensured efficient parallel development and a well-organized final report.
@@ -187,8 +187,8 @@ The team adopted a **branch-based Git workflow**:
 
 Generative AI tools (e.g., ChatGPT, Gemini, DeepSeek) were used to assist with:
 
--   Debugging technical issues (e.g., `gganimate` rendering errors)\
--   Improving code structure and visualization implementation\
+-   Debugging technical issues (e.g., `gganimate` rendering errors)
+-   Improving code structure and visualization implementation
 -   Refining written explanations
 
 All AI-generated content was reviewed and validated to ensure accuracy and alignment with project requirements.
