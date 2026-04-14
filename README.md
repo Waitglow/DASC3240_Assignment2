@@ -45,7 +45,7 @@ This repository is organized to support collaborative development for the **DASC
 
 -   The repository follows an **RStudio project structure**
 -   Each member works on an individual **Quarto (`.qmd`) file**
--   All datasets are stored in the **`data/` folder**
+-   All datasets are stored in the **`data folder**
 -   Final outputs are rendered as `.html` files
 -   Version control is managed via **GitHub branches**
 
@@ -59,11 +59,11 @@ All branches were finally merged into the `main` branch by the team leader.
 ### Overview
 
 -   **main (final integrated version)**
-    -   ZhangChuxi → BIOTIME 192 analysis
-    -   HEBingyi → BIOTIME 232 + visualization + debugging
-    -   LinZirong → Penguins analysis
-    -   YangTaoming → msleep analysis
-    -   Cheng_Wing_Him → Earthquake visualization
+    -   ZhangChuxi → L17_Assignment_Zhangchuxi.qmd
+    -   HEBingyi → L17_Assignment_HEBingyi.qmd
+    -   LinZirong → L17_Assignment_LinZirong.qmd
+    -   YangTaoming → L17_Assignment_YANGTaoming.qmd
+    -   Cheng_Wing_Him → L17_Assignment_ChengWingHim.qmd
 
 ------------------------------------------------------------------------
 
