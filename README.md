@@ -45,7 +45,7 @@ This repository is organized to support collaborative development for the **DASC
 
 -   The repository follows an **RStudio project structure**
 -   Each member works on an individual **Quarto (`.qmd`) file**
--   All datasets are stored in the **`data folder**
+-   All datasets are stored in the **\`data folder**
 -   Final outputs are rendered as `.html` files
 -   Version control is managed via **GitHub branches**
 
@@ -53,8 +53,7 @@ This repository is organized to support collaborative development for the **DASC
 
 ## 2. Branch Structure
 
-Each team member developed their work in an individual branch.
-All branches were finally merged into the `main` branch by the team leader.
+Each team member developed their work in an individual branch. All branches were finally merged into the `main` branch by the team leader.
 
 ### Overview
 
@@ -69,28 +68,23 @@ All branches were finally merged into the `main` branch by the team leader.
 
 ## 3. Team Leadership & Responsibilities
 
--   **Zhang Chuxi (Leader)**
-    Responsible for:
+-   **Zhang Chuxi (Leader)** Responsible for:
     -   Overall project coordination
     -   Task allocation and dataset assignment
     -   Managing project workflow
     -   Merging all branches into the `main` branch
     -   Ensuring consistency of the final report
     -   Edit a README file
--   **HE Bingyi (Technical Lead & Git Management)**
-    Responsible for:
+-   **HE Bingyi (Technical Lead & Git Management)** Responsible for:
     -   Managing GitHub **branch workflow and repository structure**
     -   Maintaining version control
     -   Debugging technical issues (e.g., plot errors, merge conflicts)
     -   Write a README file
--   **Lin Zirong**
-    Responsible for:
+-   **Lin Zirong** Responsible for:
     -   Analysis and visualization of the **Palmer Penguins** dataset
--   **Yang Taoming**
-    Responsible for:
+-   **Yang Taoming** Responsible for:
     -   Analysis of the **Mammalian Sleep (msleep)** dataset
--   **Cheng Wing Him**
-    Responsible for:
+-   **Cheng Wing Him** Responsible for:
     -   Analysis and visualization of the **Fiji Earthquakes (quakes)** dataset
 
 ------------------------------------------------------------------------
@@ -112,14 +106,11 @@ The goal of this project is to explore **spatiotemporal patterns and biological 
 
 The project spans several key areas:
 
--   **Polar Ecological Evolution**
-    Analysis of **BIOTIME (Study 192 & 232)** to examine long-term changes in Antarctic ecosystems
+-   **Polar Ecological Evolution** Analysis of **BIOTIME (Study 192 & 232)** to examine long-term changes in Antarctic ecosystems
 
--   **Biological Traits & Behaviors**
-    Use of **Palmer Penguins** and **Mammalian Sleep** datasets to study morphology and physiological relationships
+-   **Biological Traits & Behaviors** Use of **Palmer Penguins** and **Mammalian Sleep** datasets to study morphology and physiological relationships
 
--   **Geophysical Dynamics**
-    Visualization of **Fiji Earthquakes** to analyze magnitude distribution and spatial depth patterns
+-   **Geophysical Dynamics** Visualization of **Fiji Earthquakes** to analyze magnitude distribution and spatial depth patterns
 
 ------------------------------------------------------------------------
 
