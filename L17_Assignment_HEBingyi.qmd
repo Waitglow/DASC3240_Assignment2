@@ -717,3 +717,5 @@ animate(
 ```
 
 ![Dynamic Species Habitat Shift (KDE Heatmap Animation)](aurora.gif){#fig-kde-animation width="80%"}
+
+hhhhhhhhhh
