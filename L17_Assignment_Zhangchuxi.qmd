@@ -1,5 +1,5 @@
 ---
-title: "Assignment II: Group [1]"
+title: "Assignment II: Group [A]"
 author: "Zhang chuxi"
 format: 
   html:
