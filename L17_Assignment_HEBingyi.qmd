@@ -148,6 +148,10 @@ The dataset comprises **6,349 observations** across **9 variables**. The core me
 **`YEAR`**: The primary temporal variable for spatiotemporal analysis.
 
 Overall, this dataset is exceptionally well-suited for spatiotemporal visualization because it integrates precise taxonomic data with rigorous spatial and temporal markers.
+
+**Key Message (Story):**
+
+This dataset reveals that fish communities in the Kerguelen region exhibit strong spatial clustering and temporal variability, making it possible to explore how marine biodiversity changes across both space and time.
 :::
 
 ### Interactive plot(s) using `plotly`
@@ -191,6 +195,10 @@ Note: At least one plot is required, but multiple plots are allowed
 ::: callout
 ### Your answer is here
 
+**Key Message (Story):**
+
+This set of interactive visualizations shows that fish species in the Kerguelen region exhibit distinct ecological strategies, spatial clustering patterns, and temporal dynamics. Some species tend to have many small individuals, while others consist of fewer but larger individuals, and their distributions are uneven across space and time.
+
 The primary purpose of this multi-faceted visualization is to **decode the ecological and spatiotemporal structure** of the Kerguelen fish communities. By integrating population scaling, yearly trends, and geographic mapping, the figure aims to reveal not just *what* species are present, but *how* they occupy their environment and *when* their populations undergo significant shifts.
 
 Specifically, this visualization is designed to:
@@ -207,6 +215,9 @@ By utilizing **interactive features**—such as hover metadata and species-toggl
 Note: If you want to specify setting for a code chunk, you can use `#|` for each option (for example, `#| echo: true`). Rmarkdown code chunk still works (for example, `{r echo = true}`), but Quarto style is recommended.
 
 ```{r}
+#| label: fig-aurora-heatmap
+#| fig-cap: "Temporal Distribution of Species Abundance (Bright Aurora Heatmap)."
+#| 
 library(plotly)
 library(dplyr)
 library(tidyr)
@@ -282,6 +293,8 @@ fig
 ```
 
 ```{r}
+#| label: fig-abundance-biomass
+#| fig-cap: "Relationship between Abundance and Biomass for Top 3 Species."
 #| echo: true
 
 library(dplyr)
@@ -443,6 +456,8 @@ plot_ly(
 ```
 
 ```{r}
+#| label: fig-spatial-map
+#| fig-cap: "Interactive Spatial Distribution of Sampling Sites."
 library(ggplot2)
 library(maps)
 library(plotly)
@@ -550,6 +565,10 @@ Note: At least one animation is required, but multiple animations are allowed
 ::: callout
 ### Your answer is here
 
+**Key Message (Story):**
+
+This animation reveals that fish populations are not fixed in space but continuously shift their spatial distribution over time. The movement of density "hotspots" suggests that species dynamically adapt to environmental changes in the Southern Ocean.
+
 The ultimate purpose of this animation is to **visualize the dynamic habitat stability and spatiotemporal shifts** of the Kerguelen fish communities. By synthesizing the ecological relationships, yearly trends, and geographic distributions explored in previous sections, this animation tells a cohesive story of **ecosystem adaptation**.
 
 Specifically, the visualization aims to:
@@ -564,6 +583,7 @@ Ultimately, this animation moves beyond simple data presentation; it functions a
 :::
 
 ```{r}
+#| fig-cap: "Fig 4: Dynamic Species Habitat Shift over Time (KDE Heatmap Animation)."
 #| label: gganimate-heatmap
 #| eval: false
 #| echo: true
@@ -696,4 +716,4 @@ animate(
 )
 ```
 
-![Dynamic Species Habitat Shift (KDE Heatmap)](aurora.gif){width="80%"}
+![Dynamic Species Habitat Shift (KDE Heatmap Animation)](aurora.gif){#fig-kde-animation width="80%"}
