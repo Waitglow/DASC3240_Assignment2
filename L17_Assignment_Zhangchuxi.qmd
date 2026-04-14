@@ -165,7 +165,13 @@ p1
 ```
 
 ```{r}
+library(tidyverse)
+library(gganimate)
+library(plotly)
+
+df <- read_csv("C:/Users/ZhangChuxi/OneDrive - HKUST Connect/桌面/Assignment2/DASC3240_Assignment2/data/BIOTIME_raw_data_192.csv")
 #load the map
+
 world_map <- map_data("world")
   
 g2<-ggplot() +
@@ -261,10 +267,15 @@ Together, they show both detailed species information and overall distribution p
 
 ```{r}
 
-library(maps)
-library(gganimate)
-
 #The scatter plot 
+library(tidyverse)
+library(gganimate)
+library(plotly)
+library(maps)
+
+df <- read_csv("C:/Users/ZhangChuxi/OneDrive - HKUST Connect/桌面/Assignment2/DASC3240_Assignment2/data/BIOTIME_raw_data_192.csv")
+
+
 
 #load the map
 world_map <- map_data("world")
@@ -306,6 +317,13 @@ animate(p_anim,nframes = 400,fps = 20,width = 800,height = 600)
 ```
 
 ```{r}
+#The heatmap 
+library(tidyverse)
+library(gganimate)
+library(plotly)
+library(maps)
+
+df <- read_csv("C:/Users/ZhangChuxi/OneDrive - HKUST Connect/桌面/Assignment2/DASC3240_Assignment2/data/BIOTIME_raw_data_192.csv")
 
 
 # load the information
