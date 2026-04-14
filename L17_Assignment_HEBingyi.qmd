@@ -712,10 +712,8 @@ animate(
   nframes = length(years) * 2, 
   fps = 5,
   width = 800, height = 600,# To prevent long loading times, you can change it to 500 x 350.
-  renderer = gifski_renderer("aurora.gif") #If you need to render it as HTML, do not comment out this code and save the GIF to the same path; if you only want to view it in the "Viewer" window, you can comment out this line.
+  renderer = gifski_renderer("aurora.gif") #If you need to render it as HTML, do not comment out this code and save the GIF to the same path; if you only want to view it in the "Viewer" window, you can comment out this line
 )
 ```
 
 ![Dynamic Species Habitat Shift (KDE Heatmap Animation)](aurora.gif){#fig-kde-animation width="80%"}
-
-hhhhhhhhhh
