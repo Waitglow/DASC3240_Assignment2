@@ -1,0 +1,948 @@
+---
+title: "Assignment II: Group [A]"
+author: "HE Bingyi"
+format: 
+  html:
+    toc: true
+    code-fold: false
+    embed-resources: true # <= check here: https://quarto.org/docs/reference/formats/html.html
+execute:
+  echo: true    # <= knitr::opts_chunk$set(echo = TRUE) in Rmarkdown
+  warning: false
+  message: false
+---
+
+# Name
+
+[**Name**]{style="color:red"}**: HE Bingyi**
+
+# Generative AI declaration
+
+Students may use generative AI tools during assignment, for example, to check and improve code, provided that the content is original and reflects the student's own contributions. If generative AI is used, students must declare its use in the box below. An example statement is: “*During the assignment, I used \[XXXX\] to \[XXXX\]. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.”*
+
+::: callout
+xxxxxxxxxxxxxx
+:::
+
+# Dataset
+
+Each group member may choose either of the following dataset:
+
+**Built-in dataset**
+
+-   `palmerpenguins::penguins`
+-   `ggplot2::msleep`
+-   `ggplot2::midwest`
+-   `datasets::quakes`
+
+**Public dataset**
+
+BIOTIME (CC0) <https://biotime.st-andrews.ac.uk/usageGuidelines.php>
+
+-   `BIOTIME_raw_data_192.csv` (uploaded on Canvas) (Whale data from <https://biotime.st-andrews.ac.uk/selectStudy.php?study=192>)
+-   `BIOTIME_raw_data_232.csv` (uploaded on Canvas) (Fish data from <https://biotime.st-andrews.ac.uk/selectStudy.php?study=232>)
+
+# Figures by each group member
+
+### Dataset
+
+::: callout-important
+[Which dataset did you choose?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+BIOTIME_raw_data_232.csv
+:::
+
+```{r}
+bio <- read.csv("data/BIOTIME_raw_data_232.csv")
+head(bio)
+str(bio)
+```
+
+```{r}
+#| echo: true
+
+library(dplyr)
+
+# -----------------------------
+# Step 1: Clean data
+# -----------------------------
+bio_clean <- bio %>%
+  filter(
+    !is.na(valid_name),
+    !is.na(ABUNDANCE),
+    !is.na(BIOMAS),
+    !is.na(YEAR),
+    ABUNDANCE > 0,
+    BIOMAS > 0
+  )
+
+# -----------------------------
+# Step 2: Find Top 3 species
+# by total abundance
+# -----------------------------
+top3 <- bio_clean %>%
+  group_by(valid_name) %>%
+  summarise(
+    total_abundance = sum(ABUNDANCE, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 3)
+
+# -----------------------------
+# Step 3: Output Top 3 species
+# -----------------------------
+print(top3)
+
+top3_names <- top3 %>%
+  pull(valid_name)
+
+print(top3_names)
+
+# -----------------------------
+# Step 4: Keep only Top 3 species
+# -----------------------------
+bio_top3 <- bio_clean %>%
+  filter(valid_name %in% top3_names)
+
+# optional check
+bio_top3 %>%
+  count(valid_name, sort = TRUE) %>%
+  print()
+# -----------------------------
+# Step 5: Prepare spatial data
+# -----------------------------
+spatial_data <- bio_top3 %>%
+  filter(
+    !is.na(LATITUDE),
+    !is.na(LONGITUDE),
+    !is.na(YEAR)
+  ) %>%
+  mutate(
+    YEAR = factor(YEAR, levels = sort(unique(YEAR)))
+  )
+
+# optional check
+spatial_data %>%
+  count(valid_name, sort = TRUE) %>%
+  print()
+```
+
+```{r}
+#| label: master-data-prep
+library(tidyverse)
+library(plotly)
+library(gganimate)
+library(maps)
+library(MASS)
+
+# 1. 读入数据 (确保路径 data/ 存在)
+bio_raw <- read.csv("data/BIOTIME_raw_data_232.csv")
+
+# 2. 统一清洗逻辑：过滤缺失值并确保数值大于 0
+bio_clean <- bio_raw %>%
+  filter(!is.na(valid_name), !is.na(ABUNDANCE), !is.na(BIOMAS), !is.na(YEAR),
+         ABUNDANCE > 0, BIOMAS > 0)
+
+# 3. 锁定前 3 个物种 (Top 3)
+top3_info <- bio_clean %>%
+  group_by(valid_name) %>%
+  summarise(total_abundance = sum(ABUNDANCE, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 3)
+
+top3_names <- top3_info$valid_name
+
+# 4. 准备各部分通用的数据集
+# 基础 Top 3 数据集
+bio_top3 <- bio_clean %>%
+  filter(valid_name %in% top3_names) %>%
+  mutate(valid_name = factor(valid_name, levels = top3_names))
+
+# 空间数据集 (用于地图和热力图)
+spatial_data <- bio_top3 %>%
+  filter(!is.na(LATITUDE), !is.na(LONGITUDE))
+
+```
+
+### Introduction
+
+::: callout-important
+[What is the dataset about? What variables are included in the data? How was the data taken/measured?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+#### 1.1 Dataset Summary
+
+The dataset used in this study comes from the **BioTIME database (Study ID 232)**. Rather than representing general marine records, this dataset specifically focuses on **biological surveys conducted in the waters surrounding the sub-Antarctic Kerguelen Islands**. It contains ecological observations of marine organisms and is useful for studying biodiversity patterns in a high-latitude marine ecosystem.
+
+#### 1.2 Temporal Scope
+
+The dataset mainly covers the period from **1990 to 1992**. In addition to yearly information, the data also include observations recorded by **month (`MONTH`)** and **day (`DAY`)**, which makes it possible to examine **short-term and seasonal fluctuations** in abundance and biomass during the sampling period.
+
+#### 1.3 Taxonomic Coverage
+
+The dataset includes multiple marine taxa, with several representative species appearing repeatedly in the observations. One of the most frequently recorded species is ***Mancopsetta maculata***, a fish species that appears to play an important role in this dataset. Other taxa, such as members of the **Zoarcidae** family, are also present.
+
+These species are important components of the **Southern Ocean food web**, and changes in their **abundance (`ABUNDANCE`)** and **biomass (`BIOMAS`)** may reflect shifts in the ecological condition and stability of the local marine ecosystem.
+
+#### 1.4 Spatial Distribution
+
+The sampling locations are concentrated in the waters between approximately **51°S and 58°S latitude**, and **72°E and 77°E longitude**. This specific geographic region is strongly influenced by **Southern Ocean circulation and environmental conditions**, making it a valuable area for studying **marine biodiversity and species distribution in sub-Antarctic ecosystems**.
+
+#### 1.5 Variables Included in the Dataset
+
+This dataset contains **6,349 observations and 9 variables**. The main variables include:
+
+-   **`ABUNDANCE`**: the number of individuals recorded in a sampling event\
+-   **`BIOMAS`**: the biomass associated with the recorded observation\
+-   **`valid_name`**: the scientific name of the species\
+-   **`LATITUDE`** and **`LONGITUDE`**: the geographic coordinates of the sampling site\
+-   **`DAY`**, **`MONTH`**, and **`YEAR`**: the date of sampling\
+-   **`SAMPLE_DESC`**: a sample identifier that appears to combine spatial and temporal information
+
+Overall, this dataset is suitable for visualization because it contains **species-level, temporal, and spatial information**, allowing us to explore how marine biodiversity patterns vary across **time, species, and location**.
+:::
+
+### Interactive plot(s) using `plotly`
+
+::: callout-important
+[Please explain which plot type you choose and why. Also, please discuss the strengths and weaknesses of your plot(s).]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+I chose an **interactive scatter plot** created using the `plotly` package to visualize the relationship between **Abundance** and **Biomass** for the top 3 most abundant species in the dataset. In addition to one combined plot, I also created three separate species-specific plots so that the overall pattern and the individual species patterns can both be examined clearly.
+
+I selected this plot type because a scatter plot is one of the most suitable ways to display the relationship between **two continuous variables**. In this dataset, **Abundance** represents how many individuals were recorded, while **Biomass** represents the total biological mass. Plotting these two variables together helps reveal whether higher abundance is generally associated with higher biomass and whether different species follow similar or different ecological patterns.
+
+The main **strength** of this visualization is that it is **interactive**, which provides clear advantages over a static plot. In the combined plot, users can hover over each point to inspect detailed information such as species name, abundance, biomass, and year. They can also compare the three species more easily through color coding. The separate plots further improve readability because they reduce overlap and make within-species patterns easier to observe.
+
+Another strength is that the scatter plot is visually intuitive. It clearly shows clusters, trends, and extreme observations (outliers), which helps readers understand the ecological structure of the dataset more effectively.
+
+However, this plot also has some **weaknesses**. First, when many points are concentrated in a small area, some overlap still occurs even after adding slight jitter. Second, the scatter plot mainly provides a **visual** interpretation and does not directly give a statistical measurement such as a correlation coefficient or regression result. Finally, because biomass values vary greatly, the plot may be influenced by several high-value observations.
+
+Overall, this interactive scatter plot is an effective and meaningful way to explore species-level ecological patterns in the dataset.
+:::
+
+Note: At least one plot is required, but multiple plots are allowed
+
+::: callout-important
+[What is the purpose of this visualization?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+The purpose of this visualization is to explore and communicate the relationship between **species abundance and biomass** in the selected marine biodiversity dataset.
+
+More specifically, this visualization is designed to show whether species with higher abundance also tend to have higher biomass, and whether this relationship differs among the top 3 most abundant species. By using one combined plot together with separate species-specific plots, the figure allows readers to first understand the **overall ecological pattern** and then examine each species in more detail.
+
+This visualization also helps identify **clusters, variation, and possible outliers** in the data. These patterns are important because they may reflect species-specific ecological characteristics, differences in body size, or different abundance structures within the marine ecosystem.
+
+The interactive features make the visualization more useful than a static figure because readers can inspect individual observations and compare species more flexibly. Therefore, the figure is intended not only to present the data correctly, but also to help readers better understand the ecological meaning behind the observed patterns.
+:::
+
+Note: If you want to specify setting for a code chunk, you can use `#|` for each option (for example, `#| echo: true`). Rmarkdown code chunk still works (for example, `{r echo = true}`), but Quarto style is recommended.
+
+```{r}
+#| label: statistical-distribution
+# 使用小提琴图 (Violin Plot) 结合箱线图展示丰度的分布范围
+ggplot(bio_top3, aes(x = valid_name, y = ABUNDANCE, fill = valid_name)) +
+  geom_violin(alpha = 0.5, color = NA) +
+  geom_boxplot(width = 0.1, color = "black", outlier.size = 0.5) +
+  scale_y_log10() +
+  scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb")) +
+  labs(
+    title = "Abundance Distribution Range of Top 3 Species",
+    subtitle = "Boxplot shows median and quartiles; Violin shows density",
+    x = "Species",
+    y = "Abundance (Log Scale)",
+    fill = "Species"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 15, hjust = 1))
+```
+
+```{r}
+# YOUR CODE HERE
+# xxxxx
+
+
+#| echo: true
+
+library(dplyr)
+library(plotly)
+
+# -----------------------------
+# Step 1: Clean data
+# -----------------------------
+bio_clean <- bio %>%
+  filter(!is.na(ABUNDANCE),
+         !is.na(BIOMAS),
+         !is.na(valid_name),
+         ABUNDANCE > 0,
+         BIOMAS > 0)
+
+# -----------------------------
+# Step 2: Top 3 species
+# -----------------------------
+top3 <- bio_clean %>%
+  group_by(valid_name) %>%
+  summarise(total_abundance = sum(ABUNDANCE, na.rm = TRUE)) %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 3)
+
+bio_top3 <- bio_clean %>%
+  filter(valid_name %in% top3$valid_name) %>%
+  mutate(
+    ABUNDANCE_jitter = jitter(ABUNDANCE, amount = 2),
+    BIOMAS_jitter = jitter(BIOMAS, amount = 300)
+  )
+
+species_names <- unique(bio_top3$valid_name)
+
+# -----------------------------
+# Plot 1: Combined plot
+# -----------------------------
+plot_ly(
+  bio_top3,
+  x = ~ABUNDANCE_jitter,
+  y = ~BIOMAS_jitter,
+  color = ~valid_name,
+  colors = c(
+    "Champsocephalus gunnari" = "#66c2a5",
+    "Channichthys rhinoceratus" = "#fc8d62",
+    "Pleuragramma antarcticum" = "#8da0cb"
+  ),
+  type = "scatter",
+  mode = "markers",
+  marker = list(size = 8, opacity = 0.75),
+  text = ~paste(
+    "Species:", valid_name,
+    "<br>Abundance:", ABUNDANCE,
+    "<br>Biomass:", BIOMAS,
+    "<br>Year:", YEAR
+  ),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "Abundance and Biomass of the Top 3 Species",
+    xaxis = list(title = "Abundance"),
+    yaxis = list(title = "Biomass"),
+    legend = list(title = list(text = "Species"))
+  )
+
+# -----------------------------
+# Plot 2: Champsocephalus gunnari
+# -----------------------------
+plot_ly(
+  data = filter(bio_top3, valid_name == "Champsocephalus gunnari"),
+  x = ~ABUNDANCE_jitter,
+  y = ~BIOMAS_jitter,
+  type = "scatter",
+  mode = "markers",
+  marker = list(
+    color = "#66c2a5",
+    size = 8,
+    opacity = 0.8
+  ),
+  text = ~paste(
+    "Species:", valid_name,
+    "<br>Abundance:", ABUNDANCE,
+    "<br>Biomass:", BIOMAS,
+    "<br>Year:", YEAR
+  ),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "Champsocephalus gunnari",
+    xaxis = list(title = "Abundance"),
+    yaxis = list(title = "Biomass")
+  )
+
+# -----------------------------
+# Plot 3: Channichthys rhinoceratus
+# -----------------------------
+plot_ly(
+  data = filter(bio_top3, valid_name == "Channichthys rhinoceratus"),
+  x = ~ABUNDANCE_jitter,
+  y = ~BIOMAS_jitter,
+  type = "scatter",
+  mode = "markers",
+  marker = list(
+    color = "#fc8d62",
+    size = 8,
+    opacity = 0.8
+  ),
+  text = ~paste(
+    "Species:", valid_name,
+    "<br>Abundance:", ABUNDANCE,
+    "<br>Biomass:", BIOMAS,
+    "<br>Year:", YEAR
+  ),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "Channichthys rhinoceratus",
+    xaxis = list(title = "Abundance"),
+    yaxis = list(title = "Biomass")
+  )
+
+# -----------------------------
+# Plot 4: Pleuragramma antarcticum
+# -----------------------------
+plot_ly(
+  data = filter(bio_top3, valid_name == "Pleuragramma antarcticum"),
+  x = ~ABUNDANCE_jitter,
+  y = ~BIOMAS_jitter,
+  type = "scatter",
+  mode = "markers",
+  marker = list(
+    color = "#8da0cb",
+    size = 8,
+    opacity = 0.8
+  ),
+  text = ~paste(
+    "Species:", valid_name,
+    "<br>Abundance:", ABUNDANCE,
+    "<br>Biomass:", BIOMAS,
+    "<br>Year:", YEAR
+  ),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "Pleuragramma antarcticum",
+    xaxis = list(title = "Abundance"),
+    yaxis = list(title = "Biomass")
+  )
+
+```
+
+```{r}
+#| echo: true
+library(tidyverse)
+library(plotly)
+
+# 1. 载入数据
+bio_raw <- read.csv("data/BIOTIME_raw_data_232.csv")
+
+# 2. 锁定 Top 3 物种
+top3_names <- bio_raw %>%
+  group_by(valid_name) %>%
+  summarise(total_abundance = sum(ABUNDANCE, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 3) %>%
+  pull(valid_name)
+
+# 3. 准备数据并补全结构（保证图例常驻）
+plot_data <- bio_raw %>%
+  filter(valid_name %in% top3_names) %>%
+  filter(ABUNDANCE > 0, BIOMAS > 0) %>%
+  mutate(valid_name = factor(valid_name, levels = top3_names)) %>%
+  complete(YEAR, valid_name) %>% 
+  arrange(YEAR)
+
+# 4. 绘图：去掉会导致警告的 aspect.ratio
+p <- ggplot(plot_data, aes(x = ABUNDANCE, y = BIOMAS, fill = valid_name)) +
+  geom_point(
+    aes(frame = YEAR), 
+    shape = 21, 
+    color = "white", 
+    size = 2.4, 
+    stroke = 0.4, 
+    alpha = 0.9
+  ) +
+  scale_x_log10() +
+  scale_y_log10() +
+  scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb"), drop = FALSE) +
+  labs(
+    title = "Temporal Dynamics of Top 3 Species",
+    x = "Abundance (Log Scale)",
+    y = "Biomass (Log Scale)",
+    fill = "Species"
+  ) +
+  theme_minimal()
+  # 注意：这里删掉了 theme(aspect.ratio = 0.45)，解决了警告问题
+
+# 5. 转换为 Plotly：在这里手动设置宽和高来实现“拉长”
+# 设置 width 为 1000，height 为 400，比例约为 2.5:1，视觉上会非常扁长
+ggplotly(p, width = 1000, height = 400) %>%
+  layout(
+    margin = list(r = 220, t = 80),
+    legend = list(x = 1.05, y = 0.5, xanchor = "left")
+  ) %>%
+  animation_opts(frame = 1000, redraw = TRUE, transition = 500)
+```
+
+### Animation using `gganimate`
+
+::: callout-important
+[Please explain which animation type you choose and why. Also, please discuss the strengths and weaknesses of your animation.]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+xxxxxxxxxxxxxx I created an **animated spatial scatter plot** using the `gganimate` package, where each frame represents a different year. Specifically, I used `transition_time(YEAR)` to visualize how the spatial distribution of the top three most abundant species changes over time. This animation type allows a smooth temporal transition rather than discrete jumps between years, making the visualization more continuous and easier to follow.
+
+I chose this animation type because the dataset contains both **spatial (latitude and longitude)** and **temporal (year)** dimensions. A static map can only show the overall distribution, but it cannot effectively reveal how species distributions evolve across years. By animating the data, I can highlight temporal dynamics and provide a clearer understanding of how species locations shift over time.
+
+One major **strength** of this animation is that it integrates spatial and temporal information simultaneously. The movement of points across frames helps viewers intuitively understand changes in species distribution. In addition, the use of color coding for different species allows easy comparison between taxa, and the smooth transition (using easing functions) improves visual continuity and readability.
+
+Another strength is that animation provides a **storytelling advantage** over static plots. It helps emphasize trends and patterns that may not be immediately obvious in a single snapshot.
+
+However, this animation also has some **weaknesses**. First, when many observations are concentrated in a small geographic area, point overlap can still occur, making it difficult to distinguish individual data points. Second, because the animation focuses on visual transitions, it may be harder for viewers to extract precise quantitative information compared to static plots. Finally, if the viewer watches only a short segment or misses frames, some temporal patterns may not be fully understood.
+
+Overall, this animated spatial visualization is effective for exploring and communicating **temporal changes in species distribution**, although it should ideally be complemented by static plots for detailed analysis.
+:::
+
+Note: At least one animation is required, but multiple animations are allowed
+
+::: callout-important
+[What is the purpose of this visualization?]{style="color:darkred; font-weight:bold;"}
+:::
+
+::: callout
+### Your answer is here
+
+xxxxxxxxxxxxxx The main purpose of this visualization is to **illustrate how the spatial distribution of the top three most abundant species changes over time**. By combining geographic coordinates with temporal information, the animation aims to reveal patterns such as clustering, shifts in location, and potential differences in habitat usage among species.
+
+This visualization also helps highlight whether different species occupy distinct spatial regions or share similar habitats, which may provide insights into ecological interactions and environmental influences in the sub-Antarctic ecosystem.
+
+More broadly, the animation serves as an **explanatory visualization**, allowing viewers to quickly grasp complex spatial–temporal dynamics that would be difficult to interpret from raw data or static figures alone.
+:::
+
+```{r}
+# YOUR CODE HERE
+# xxxxx
+library(tidyverse)
+library(plotly)
+
+# 1. 读入数据
+bio <- read.csv("data/BIOTIME_raw_data_232.csv")
+
+# 2. 找出总 abundance 最高的前 10 个物种
+top10_species <- bio %>%
+  group_by(valid_name) %>%
+  summarise(total_abundance = sum(ABUNDANCE, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 10) %>%
+  pull(valid_name)
+
+# 3. 保留前10物种的原始记录，不做 yearly summary
+plot_data <- bio %>%
+  filter(valid_name %in% top10_species) %>%
+  filter(!is.na(ABUNDANCE), !is.na(BIOMAS), !is.na(YEAR)) %>%
+  filter(ABUNDANCE > 0, BIOMAS > 0) %>%
+  mutate(valid_name = factor(valid_name, levels = top10_species)) %>%
+  tidyr::complete(
+    YEAR,
+    valid_name,
+    fill = list(ABUNDANCE = NA, BIOMAS = NA)
+  )
+
+
+# 4. 画图：保持老师第一段的结构
+base2 <- plot_ly(
+  data = plot_data,
+  x = ~ABUNDANCE,
+  y = ~BIOMAS,
+  color = ~valid_name,
+  colors = "Set3"
+) %>%
+  add_markers(
+    marker = list(size = 5, opacity = 0.18),
+    #showlegend = TRUE,
+    showlegend = TRUE,
+    hoverinfo = "skip"
+  ) %>%
+  add_markers(
+    frame = ~YEAR,
+    marker = list(size = 8, opacity = 1),
+    hovertemplate = paste(
+      "Species: %{customdata}<br>",
+      "Abundance: %{x}<br>",
+      "Biomass: %{y}<br>",
+      "Year: %{frame}<extra></extra>"
+    ),
+    customdata = ~valid_name
+  ) %>%
+  layout(
+    xaxis = list(title = "Abundance", type = "log"),
+    yaxis = list(title = "Biomass", type = "log"),
+    legend = list(title = list(text = "Species"))
+  ) %>%
+  animation_opts(1000, redraw = FALSE) %>%
+  animation_slider(currentvalue = list(prefix = "YEAR: "))
+
+base2
+```
+
+```{r}
+# -----------------------------
+# Static map
+# -----------------------------
+library(ggplot2)
+library(maps)
+
+
+world_map <- map_data("world")
+
+p_static <- ggplot() +
+  geom_polygon(
+    data = world_map,
+    aes(x = long, y = lat, group = group),
+    fill = "grey95",
+    color = "grey80"
+  ) +
+  geom_point(
+    data = spatial_data,
+    aes(
+      x = LONGITUDE,
+      y = LATITUDE,
+      color = valid_name
+    ),
+    alpha = 0.45,
+    size = 2.5
+  ) +
+  scale_color_manual(
+    values = c(
+      "Champsocephalus gunnari" = "#4DB6A7",
+      "Channichthys rhinoceratus" = "#F4A3A3",
+      "Pleuragramma antarcticum" = "#7B8FD3"
+    ),
+    drop = FALSE
+  ) +
+  coord_cartesian(
+    xlim = c(40, 110),
+    ylim = c(-71, -49)
+  ) +
+  labs(
+    title = "Spatial Distribution of Top 3 Species",
+    x = "Longitude",
+    y = "Latitude",
+    color = "Species"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    panel.grid.minor = element_blank()
+  )
+
+# First, look at the static image.
+p_static
+```
+
+```{r}
+library(gganimate)
+# -----------------------------
+# Animated map
+# -----------------------------
+p_anim_map_one <- p_static +
+  labs(
+    title = "Spatial Distribution of Top 3 Species in Year: {closest_state}"
+  ) +
+  transition_states(
+    YEAR,
+    transition_length = 1,
+    state_length = 1,
+    wrap = FALSE
+  ) +
+  ease_aes("linear")
+
+# -----------------------------
+# Render GIF
+# -----------------------------
+animate(
+  p_anim_map_one,
+  nframes = length(levels(spatial_data$YEAR)) * 12,
+  fps = 6,
+  width = 700,
+  height = 420,
+  #renderer = gifski_renderer("top3_species_spatial_one_map_small.gif")
+)
+```
+
+```{r}
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(maps)
+library(MASS)
+
+# -----------------------------
+# Step 1: 读数据
+# -----------------------------
+df <- read_csv("data/BIOTIME_raw_data_232.csv", show_col_types = FALSE)
+
+# -----------------------------
+# Step 2: 清洗数据
+# -----------------------------
+df <- df %>%
+  filter(
+    !is.na(valid_name),
+    !is.na(ABUNDANCE),
+    !is.na(BIOMAS),
+    !is.na(YEAR),
+    !is.na(LATITUDE),
+    !is.na(LONGITUDE),
+    ABUNDANCE > 0,
+    BIOMAS > 0
+  )
+
+# -----------------------------
+# Step 3: 找 Top 3 species
+# -----------------------------
+top3_names <- df %>%
+  group_by(valid_name) %>%
+  summarise(
+    total_abundance = sum(ABUNDANCE, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_abundance)) %>%
+  slice_head(n = 3) %>%
+  pull(valid_name)
+
+print(top3_names)
+
+# -----------------------------
+# Step 4: 只保留 Top 3 species
+# -----------------------------
+df <- df %>%
+  filter(valid_name %in% top3_names)
+
+# -----------------------------
+# Step 5: 选年份
+# 如果 1934 没有数据，就自动改成第一个有数据的年份
+# -----------------------------
+year_selected <- 1934
+
+if (!(year_selected %in% df$YEAR)) {
+  year_selected <- sort(unique(df$YEAR))[1]
+  message(paste("1934 is not available. Using year:", year_selected))
+}
+
+df_year <- df %>%
+  filter(
+    YEAR == year_selected,
+    !is.na(LONGITUDE),
+    !is.na(LATITUDE)
+  )
+
+# -----------------------------
+# Step 6: 防止 kde2d() 报错
+# 至少要有足够点数，而且经纬度不能都一样
+# -----------------------------
+if (nrow(df_year) < 5) {
+  stop("Not enough data points in this year for density estimation.")
+}
+
+if (length(unique(df_year$LONGITUDE)) < 2 || length(unique(df_year$LATITUDE)) < 2) {
+  stop("Longitude or Latitude does not vary enough for density estimation.")
+}
+
+# -----------------------------
+# Step 7: 世界地图
+# -----------------------------
+world_map <- map_data("world")
+
+# -----------------------------
+# Step 8: 计算二维核密度
+# -----------------------------
+dens <- kde2d(
+  x = df_year$LONGITUDE,
+  y = df_year$LATITUDE,
+  n = 200,
+  lims = c(55, 95, -72, -58)
+)
+
+# -----------------------------
+# Step 9: 转成数据框
+# -----------------------------
+density_df <- expand.grid(
+  LONGITUDE = dens$x,
+  LATITUDE = dens$y
+)
+
+density_df$density <- as.vector(dens$z)
+
+# 分成 20 个区间
+density_df$level <- cut(
+  density_df$density,
+  breaks = 20,
+  include.lowest = TRUE
+)
+
+# -----------------------------
+# Step 10: 画图
+# -----------------------------
+ggplot() +
+  geom_polygon(
+    data = world_map,
+    aes(x = long, y = lat, group = group),
+    fill = "grey90",
+    color = "grey70",
+    linewidth = 0.2
+  ) +
+  geom_tile(
+    data = density_df,
+    aes(x = LONGITUDE, y = LATITUDE, fill = level),
+    alpha = 0.7
+  ) +
+  coord_cartesian(
+    xlim = c(55, 95),
+    ylim = c(-72, -58)
+  ) +
+  labs(
+    title = paste("Top 3 Species Heatmap in Year:", year_selected),
+    x = "Longitude",
+    y = "Latitude",
+    fill = "Density"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 18, face = "bold")
+  )
+```
+
+```{r}
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(maps)
+library(MASS)
+library(gganimate)
+library(gifski)
+
+# -----------------------------
+# Step 1: 读数据
+# -----------------------------
+df_raw <- read_csv("data/BIOTIME_raw_data_232.csv", show_col_types = FALSE)
+world_map <- map_data("world")
+
+# 1. 计算密度：增加带宽 h，让边缘“晕开”
+density_all <- lapply(years, function(yr) {
+  df_year <- df_top3 %>% filter(YEAR == yr)
+  if(nrow(df_year) < 5) return(NULL)
+
+  dens <- kde2d(
+    x = df_year$LONGITUDE, y = df_year$LATITUDE,
+    n = 150,           # 提高网格密度，让画面更细腻
+    h = c(7, 3),       # 【关键】调大带宽，让热力像烟雾一样散开，消除“补丁感”
+    lims = c(x_min, x_max, y_min, y_max)
+  )
+
+  density_df <- expand.grid(LONGITUDE = dens$x, LATITUDE = dens$y)
+  density_df$density <- as.vector(dens$z)
+  density_df$YEAR <- yr
+  
+  # 统一归一化
+  density_df$density_scaled <- density_df$density / global_max
+  
+  # 【美化处理：软裁切】
+  # 之前硬切 0.05 会导致边缘很丑。现在我们不设为 NA，
+  # 而是让它自然过渡，稍后在 scale_fill 里处理透明度。
+  return(density_df)
+}) %>% bind_rows()
+
+# 2. 绘图：优化颜色和渐变
+p_anim <- ggplot() +
+  # 热力层
+  geom_raster(
+    data = density_all,
+    aes(x = LONGITUDE, y = LATITUDE, fill = density_scaled),
+    interpolate = TRUE, # 开启强力插值
+    alpha = 0.8         # 增加一点透明度，让它看起来更轻盈
+  ) +
+  geom_path(
+    data = world_map,
+    aes(x = long, y = lat, group = group),
+    color = "#555555", linewidth = 0.25 # 减细线条，让背景地图更精致
+  ) +
+  coord_cartesian(xlim = c(55, 95), ylim = c(-72, -58)) +
+  
+  # 【关键：颜色配方】
+  # 第一个颜色设为和背景相同的白色，但带全透明，
+  # 这样边缘就会慢慢“消失”在背景里，而不是突然断掉。
+  scale_fill_gradientn(
+    colours = c(
+      "white",   # 0% 处是白色（对应背景）
+      "#8EC9DE", # 蓝色过渡
+      "#A3AFF7", 
+      "#C6A5F7", 
+      "#F092EC", 
+      "#F886D6"  # 核心粉色
+    ),
+    # values 参数控制颜色分布：
+    # 让第一个颜色（白色）占据 0-0.1 的区间，产生自然的羽化效果
+    values = c(0, 0.1, 0.3, 0.5, 0.8, 1), 
+    name = "Relative density",
+    na.value = "transparent"
+  ) +
+  
+  labs(
+    title = "Top 3 Species Heatmap in Year: {closest_state}",
+    x = "Longitude", y = "Latitude"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),
+    panel.grid.major = element_line(color = "#F0F0F0"), # 极淡的网格线
+    plot.title = element_text(size = 18, face = "bold", family = "sans")
+  ) +
+  # 慢速移动设置
+  transition_states(YEAR, transition_length = 6, state_length = 3) + 
+  ease_aes("quintic-in-out") # 使用更平滑的缓动函数
+
+# 3. 渲染
+animate(
+  p_anim, 
+  nframes = length(years) * 15, 
+  fps = 10,
+  width = 800, height = 500,
+  #renderer = gifski_renderer("beauty_whale_aurora.gif")
+)
+```
+
+```{r}
+{r}
+# -----------------------------
+# Animated map (修复版)
+# -----------------------------
+p_anim_map_one <- p_static +
+  labs(
+    title = "Spatial Distribution of Top 3 Species in Year: {closest_state}"
+  ) +
+  # 使用 transition_states 并确保不丢掉没有数据的年份状态
+  transition_states(
+    YEAR,
+    transition_length = 2,
+    state_length = 1,
+    wrap = FALSE
+  ) +
+  ease_aes("linear")
+
+# -----------------------------
+# Render GIF (修复版)
+# -----------------------------
+# 自动获取唯一的年份数量，不依赖 levels()
+num_years <- length(unique(spatial_data$YEAR))
+
+animate(
+  p_anim_map_one,
+  nframes = num_years * 10, # 每秒 10 帧，确保平滑
+  fps = 10,
+  width = 700,
+  height = 420,
+  # 建议先注释掉 renderer 看看能不能在 RStudio Viewer 里跑通
+  # renderer = gifski_renderer("top3_species_spatial_one_map_small.gif")
+)
+```
