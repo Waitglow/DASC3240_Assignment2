@@ -16,22 +16,22 @@ Each group member may choose either of the following dataset:
 
 **Built-in dataset**
 
--   `palmerpenguins::penguins`\
--   `ggplot2::msleep`\
--   `ggplot2::midwest`\
--   `datasets::Orange`\
+-   `palmerpenguins::penguins`
+-   `ggplot2::msleep`
+-   `ggplot2::midwest`
+-   `datasets::Orange`
 -   `datasets::quakes`
 
 **Public dataset**
 
 BIOTIME (CC0) <https://biotime.st-andrews.ac.uk/usageGuidelines.php>
 
--   `BIOTIME_raw_data_192.csv` (uploaded on Canvas) (Whale data from <https://biotime.st-andrews.ac.uk/selectStudy.php?study=192>)\
+-   `BIOTIME_raw_data_192.csv` (uploaded on Canvas) (Whale data from <https://biotime.st-andrews.ac.uk/selectStudy.php?study=192>)
 -   `BIOTIME_raw_data_232.csv` (uploaded on Canvas) (Fish data from <https://biotime.st-andrews.ac.uk/selectStudy.php?study=232>)
 
 # Introduction
 
--   [**Please describe the structure of this repository. Who are members? Who is the leader and who contributed the overall structure of this report and how?**]{style="color:darkred;"}\
+-   [**Please describe the structure of this repository. Who are members? Who is the leader and who contributed the overall structure of this report and how?**]{style="color:darkred;"}
 
 # Group Project: Multi-Dimensional Nature Exploration
 
@@ -53,42 +53,43 @@ This repository is organized to support collaborative development for the **DASC
 
 ## 2. Branch Structure
 
-Each team member developed their work in an individual branch.\
+Each team member developed their work in an individual branch.
 All branches were finally merged into the `main` branch by the team leader.
 
 ### Overview
 
 -   **main (final integrated version)**
-    -   ZhangChuxi → BIOTIME 192 analysis\
-    -   HEBingyi → BIOTIME 232 + visualization + debugging\
-    -   LinZirong → Penguins analysis\
-    -   YangTaoming → msleep analysis\
+    -   ZhangChuxi → BIOTIME 192 analysis
+    -   HEBingyi → BIOTIME 232 + visualization + debugging
+    -   LinZirong → Penguins analysis
+    -   YangTaoming → msleep analysis
     -   Cheng_Wing_Him → Earthquake visualization
 
 ------------------------------------------------------------------------
 
 ## 3. Team Leadership & Responsibilities
 
--   **Zhang Chuxi (Leader)**\
+-   **Zhang Chuxi (Leader)**
     Responsible for:
-    -   Overall project coordination\
-    -   Task allocation and dataset assignment\
-    -   Managing project workflow\
-    -   Merging all branches into the `main` branch\
+    -   Overall project coordination
+    -   Task allocation and dataset assignment
+    -   Managing project workflow
+    -   Merging all branches into the `main` branch
     -   Ensuring consistency of the final report
--   **HE Bingyi (Technical Lead & Git Management)**\
+    -   Edit a README file
+-   **HE Bingyi (Technical Lead & Git Management)**
     Responsible for:
-    -   Managing GitHub **branch workflow and repository structure**\
-    -   Maintaining version control\
-    -   Debugging technical issues (e.g., plot errors, merge conflicts)\
-    -   Supporting visualization implementation (`plotly`, `gganimate`)
--   **Lin Zirong**\
+    -   Managing GitHub **branch workflow and repository structure**
+    -   Maintaining version control
+    -   Debugging technical issues (e.g., plot errors, merge conflicts)
+    -   Write a README file
+-   **Lin Zirong**
     Responsible for:
     -   Analysis and visualization of the **Palmer Penguins** dataset
--   **Yang Taoming**\
+-   **Yang Taoming**
     Responsible for:
     -   Analysis of the **Mammalian Sleep (msleep)** dataset
--   **Cheng Wing Him**\
+-   **Cheng Wing Him**
     Responsible for:
     -   Analysis and visualization of the **Fiji Earthquakes (quakes)** dataset
 
@@ -98,7 +99,7 @@ All branches were finally merged into the `main` branch by the team leader.
 
 The overall structure of this report was developed collaboratively.
 
--   **Zhang Chuxi** led coordination, task allocation, and final integration\
+-   **Zhang Chuxi** led coordination, task allocation, statistic data,give ideas to members about choosing graph,and final integration
 -   **HE Bingyi** contributed significantly to repository management, branch organization, and debugging
 
 This division of responsibilities ensured efficient parallel development and a well-organized final report.
@@ -111,13 +112,13 @@ The goal of this project is to explore **spatiotemporal patterns and biological 
 
 The project spans several key areas:
 
--   **Polar Ecological Evolution**\
+-   **Polar Ecological Evolution**
     Analysis of **BIOTIME (Study 192 & 232)** to examine long-term changes in Antarctic ecosystems
 
--   **Biological Traits & Behaviors**\
+-   **Biological Traits & Behaviors**
     Use of **Palmer Penguins** and **Mammalian Sleep** datasets to study morphology and physiological relationships
 
--   **Geophysical Dynamics**\
+-   **Geophysical Dynamics**
     Visualization of **Fiji Earthquakes** to analyze magnitude distribution and spatial depth patterns
 
 ------------------------------------------------------------------------
@@ -125,7 +126,7 @@ The project spans several key areas:
 ## 6. Team Division & Dataset Summary
 
 | Member | Role | Dataset | Research Focus |
-|:---|:---|:---|:---|
+|:-----------------|:-----------------|:-----------------|:-----------------|
 | **Zhang Chuxi (Leader)** | Coordination | **BIOTIME 192** | Spatiotemporal distribution of Antarctic species |
 | **HE Bingyi** | Technical Lead | **BIOTIME 232** | Fish abundance and spatial heatmap animation |
 | **Lin Zirong** | Member | **Palmer Penguins** | Morphological comparison |
@@ -138,29 +139,29 @@ The project spans several key areas:
 
 ### BIOTIME (Study 192 & 232)
 
--   Long-term biological monitoring in the Southern Ocean\
--   Data collected via bottom trawl surveys\
+-   Long-term biological monitoring in the Southern Ocean
+-   Data collected via bottom trawl surveys
 -   Key variables: `ABUNDANCE`, `BIOMASS`, `LATITUDE`, `LONGITUDE`, `YEAR`
 
 ------------------------------------------------------------------------
 
 ### Palmer Penguins
 
--   Observational data of Antarctic penguins\
+-   Observational data of Antarctic penguins
 -   Key variables: `species`, `island`, `bill_length_mm`, `flipper_length_mm`, `body_mass_g`, `year`
 
 ------------------------------------------------------------------------
 
 ### Mammalian Sleep (msleep)
 
--   Sleep and physiological traits of mammals\
+-   Sleep and physiological traits of mammals
 -   Key variables: `sleep_total`, `sleep_rem`, `bodywt`, `brainwt`, `vore`
 
 ------------------------------------------------------------------------
 
 ### Fiji Earthquakes (quakes)
 
--   Seismic activity data near Fiji\
+-   Seismic activity data near Fiji
 -   Key variables: `lat`, `long`, `depth`, `mag`, `stations`
 
 ------------------------------------------------------------------------
@@ -169,15 +170,15 @@ The project spans several key areas:
 
 The team adopted a **branch-based Git workflow**:
 
--   Each member worked on an individual branch\
--   Changes were committed independently\
--   The leader merged all branches into `main`\
+-   Each member worked on an individual branch
+-   Changes were committed independently
+-   The leader merged all branches into `main`
 -   Technical issues were handled during development and merging
 
 ### Advantages:
 
--   Supports parallel development\
--   Reduces conflicts\
+-   Supports parallel development
+-   Reduces conflicts
 -   Improves organization and traceability
 
 ------------------------------------------------------------------------
