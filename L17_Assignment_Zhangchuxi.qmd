@@ -21,7 +21,7 @@ execute:
 Students may use generative AI tools during assignment, for example, to check and improve code, provided that the content is original and reflects the student's own contributions. If generative AI is used, students must declare its use in the box below. An example statement is: “*During the assignment, I used \[XXXX\] to \[XXXX\]. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.”*
 
 ::: callout
-*During the assignment, I used deepseek to help me understand the requirment and teach me the code about making* Density heatmap animation more beautiful*. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.*
+*During the assignment, I used deepseek to help me understand the requirment (translate),and teach me the code about making* Density heatmap animation more beautiful as well as zero bug*. I subsequently reviewed and edited the code and take(s) full responsibility for the final version of the code.*
 :::
 
 # Dataset
@@ -65,17 +65,19 @@ BIOTIME (CC0) <https://biotime.st-andrews.ac.uk/usageGuidelines.php>
 ::: callout
 ### Your answer is here
 
-*What is the dataset about?*
+#### What is the dataset about?
 
 It is about different whales' abundance and location,including when and where was it discovered and how many were there.
 
-*What variables are included in the data?*
+#### What variables are included in the data?\*
 
 year,latitude,longitude,abundance,valid_name
 
-*How was the data taken/measured?*
+#### How was the data taken/measured?\*
 
 It is from BIOTIME database.
+
+Season whale catch records for austral summers from 1931/32 to 1979/80. Data have been aggregated into one degree cells centered on the reported position. The dataset covers five whale species - Blue. Fin. Sei. Minke and Humpback. These data have been exposed as an OBIS (Ocean Biogeographic Information System) resource via DiGIR (Distributed Generic Information Retrieval (DiGIR)). Unit of abundance = IndCountInt, Unit of biomass = NA
 :::
 
 ### Interactive plot(s) using `plotly`
@@ -87,6 +89,8 @@ It is from BIOTIME database.
 ::: callout
 ### Your answer is here
 
+#### interactive faceted scatter plot
+
 I chose an interactive faceted scatter plot using ggplot2 and plotly,which clearly reveals how population counts change over time.
 
 At first i would like to use a map,but i found it is too unclear,even my computer go wrong because there are too many points, so i decide to try points.After a lot of thinking, I found that i am curious about when all kinds of whales were discovered. I ask deepseek whether it is deserved to explore.It answer its ok. So i do it.
@@ -95,23 +99,25 @@ Then i try to use plotly,but the six different whales in a picture is too unclea
 
 Then it is successful!!!!!
 
-Strengths
+##### Strengths
 
 Faceting reduces overlap and makes comparison across species clear. Interactive plot allows zooming, panning, and hovering to view exact values. Transparent points avoid overcrowding and show data density. Clear labels and titles improve readability.
 
-Weaknesses
+##### Weaknesses
 
 Too many facets may make the chart look small in some layouts. Hover information only appears in interactive mode, not in static images. Some points still overlap in high-density areas.
 :::
 
 ::: callout
+#### heatmap
+
 I also choose heatmap. This is something I started after i finished the aniimation.I found the animation cannot tell us which field has the most whale directly. So this map makes people to know in which sea areas these types of whales are accustomed to showing up,making it easier for people to find them.
 
-Strengths
+##### Strengths
 
 Clear species distribution, easy to compare.Hotspots obvious, helpful for field search.
 
-Weaknesses
+##### Weaknesses
 
 Over-smoothing may blur real positions.Annual changes not obvious in animation.Hard to observe overall distribution.
 :::
@@ -125,11 +131,11 @@ Note: At least one plot is required, but multiple plots are allowed
 ::: callout
 ### Your answer is here
 
-About interactive faceted scatter plot
+#### About interactive faceted scatter plot
 
 The purpose of this visualization is to show the temporal trend and spatial distribution of whale abundance in Antarctica, compare population differences among species, and help viewers understand how whale counts have changed over decades. It aims to reveal patterns that are difficult to see in a static graph using interactive and faceted plots.
 
-About heatmap
+#### About heatmap
 
 To identify the distribution hotspots of different whale species by longitude and latitude, so as to provide a reference for future whale survey and conservation work.
 :::
@@ -165,6 +171,9 @@ p1
 ```
 
 ```{r}
+
+#| echo: true
+
 library(tidyverse)
 library(gganimate)
 library(plotly)
@@ -234,19 +243,31 @@ p2
 ::: callout
 ### Your answer is here
 
-I choose Scatter plot animation and Density heatmap animation.
+#### Scatter plot animation
 
-The animated scatter plot is used to show the exact locations of individual whale observations and how they change over time.It clearly distinguishes different species by color, allowing us to see which species appear where and when, and observe shifts in their spatial distribution year by year.
+I choose Scatter plot animation.Because it is expected to know the locations of every whales in the map and how they change over time!! I f we can know the changes of locations of every species and find order,we can predict where they will go next year in the future. It is nice in exploring ocean. I use different color to distinguishes different species.
 
-The kernel density heatmap animation focuses on identifying high‑density hotspots of whale occurrence.It reduces visual clutter from overlapping points and highlights where whales are most concentrated, making overall distribution patterns and changes in aggregation areas much easier to interpret.
+##### Strengths
 
-Animated Scatter Plot Strengths Clearly shows individual observation locations and allows tracking of spatial shifts over time. Uses color to distinguish different species, supporting species-level comparison. Preserves all original point information without aggregation or distortion. Animation is smooth and easy to follow year by year.
+1,clearly shows individual observation2,uses color to distinguish different species, supporting species-level comparison. 3,Preserves all original point information without aggregation or distortion. 4,Animation is smooth and easy to follow year by year.
 
-Animated Scatter Plot Weaknesses Points overlap heavily in high-density areas, making patterns hard to see. Too many transparent points can look messy and reduce readability. Does not highlight hotspots effectively.
+##### Weaknesses
 
-Kernel Density Heatmap Animation Strengths Effectively shows distribution hotspots and reduces overlap issues. Provides a clear overview of where whales are concentrated. Visual pattern is strong and easy to interpret at a glance. Cleaner and more professional for geographic temporal data.
+1,Points overlap heavily in high-density areas, making patterns hard to see. 2,Too many transparent points can look messy and reduce readability. 3,Does not highlight hotspots effectively.
 
-Kernel Density Heatmap Animation Weaknesses Hides individual locations and exact observation counts. Sensitive to binning and bandwidth choices. Cannot distinguish between different species in one map.
+#### kernel density heatmap animation
+
+I also choose the kernel density heatmap animation.Beacause it can focuses on identifying high‑density hotspots of whale occurrence.which fix the weaknesses of points animation.I think it is necessary.It reduces visual clutter from overlapping points and highlights where whales are most concentrated, making overall distribution patterns and changes in aggregation areas much easier to interpret.
+
+I meet a lot of difficult when i draw this map.First,i use all things i learned in class to draw it but it is very ugly.It has a lot of ugly gray polygon.So i ask deepseek to help me make it more beautiful.I ask to defined the color and make the 0 density in transparency.After make color beautiful i found the pixel count is very low,which is different from what I imagined.By changing and helping,it become beautiful!!!
+
+##### Strengths
+
+1,Effectively shows distribution hotspots and reduces overlap issues. 2,Provides a clear overview of where whales are concentrated. Visual pattern is strong and easy to interpret at a glance. Cleaner and more professional for geographic temporal data.
+
+##### Weaknesses
+
+1,Hides individual locations and exact observation counts. 2,Sensitive to binning and bandwidth choices. 3,Cannot distinguish between different species in one map.
 :::
 
 Note: At least one animation is required, but multiple animations are allowed
@@ -258,20 +279,27 @@ Note: At least one animation is required, but multiple animations are allowed
 ::: callout
 ### Your answer is here
 
-The scatter plot shows the exact locations of different species year by year, to observe where and when each species appears.
+#### scatter plot
 
-The heatmap shows the overall density and hotspots of whales, making concentration areas and their changes over time much clearer.
+This animation is designed to reveal species-specific distribution patterns and annual shifts for the six distinct whale species, especially highlighting the dominance of Balaenoptera physalus (fin whale) throughout the time series. It helps compare interspecific differences in habitat preferences, identify which species occupy specific longitude-latitude ranges, and detect divergent temporal trends. This supports future fieldwork by clarifying where and when each species is most likely to be observed.
+
+#### heatmap
+
+This animation aims to display the spatio-temporal dynamics of overall whale abundance across the 42-year study period from 1932 to 1980 in the polar marine realm. By visualizing annual changes in density hotspots, we can identify long-term shifts in whale distribution, track the expansion or contraction of core habitats, and understand how whale occurrence varied over decades in the study region centered at latitude -62.08 and longitude 79.72.
 
 Together, they show both detailed species information and overall distribution patterns, providing a complete analysis of spatial-temporal changes.
 :::
 
 ```{r}
+#| eval: false
+#| echo: true
 
 #The scatter plot 
 library(tidyverse)
 library(gganimate)
 library(plotly)
 library(maps)
+library(gifski)
 
 df <- read_csv("C:/Users/ZhangChuxi/OneDrive - HKUST Connect/桌面/Assignment2/DASC3240_Assignment2/data/BIOTIME_raw_data_192.csv")
 
@@ -310,18 +338,28 @@ p_anim <- p3 +
                     wrap = FALSE ) +
   ease_aes("linear")
 
-animate(p_anim,nframes = 400,fps = 20,width = 800,height = 600)
+animate(p_anim,nframes = 400,fps = 20,width = 650,
+        height = 500,
+        #make it fast
+        renderer = gifski_renderer("Spatial Distribution of Species in Year.gif"))
 
 
 
 ```
 
+![Spatial Distribution of Species in Year](Spatial%20Distribution%20of%20Species%20in%20Year.gif){width="80%"}
+
 ```{r}
+#| eval: false
+#| echo: true
+
 #The heatmap 
 library(tidyverse)
 library(gganimate)
 library(plotly)
 library(maps)
+library(gifski)
+
 
 df <- read_csv("C:/Users/ZhangChuxi/OneDrive - HKUST Connect/桌面/Assignment2/DASC3240_Assignment2/data/BIOTIME_raw_data_192.csv")
 
@@ -385,5 +423,10 @@ p_anim2 <- ggplot() +
 
 
 animate(p_anim2, nframes = 200,fps = 5,
-        width = 800,height = 500,res = 100)
+        width = 500,height = 350,res = 100,
+        #in order to rander successfully,i make width and height small,if you want to see clear,you can make it big
+        #make it fast
+        renderer = gifski_renderer("Whale Heatmap in Year.gif"))
 ```
+
+![Whale Heatmap in Year](Whale%20Heatmap%20in%20Year.gif){width="80%"}
