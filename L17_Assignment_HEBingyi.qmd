@@ -539,21 +539,23 @@ ggplotly(p_static, tooltip = "text")
 
 I developed an **Animated Kernel Density Estimation (KDE) Heatmap** using the `gganimate` package, where each frame represents the spatial occupancy probability for a specific year. By utilizing `transition_states(YEAR)`, the animation transforms discrete sampling coordinates into a continuous, flowing visualization of habitat density.
 
-**Why this animation type:** I chose a KDE heatmap over a simple scatter plot animation because point-based movements can be noisy and fail to identify population "cores". A heatmap allows us to visualize the "Aurora-like" shifts in species concentration, providing a clearer biological narrative of how the dominant fish populations reorganize themselves spatially in response to the Southern Ocean's environment.
+**Why this animation type (and why it's better than a static plot):** I chose a KDE heatmap over a simple scatter plot animation because point-based movements can be noisy and fail to identify population "cores". A heatmap allows us to visualize the "Aurora-like" shifts in species concentration, providing a clearer biological narrative of how the dominant fish populations reorganize themselves spatially.
+
+Crucially, a static map of this decade-long survey would suffer from severe **overplotting**, making it impossible to distinguish yearly trends. This animation provides a **clear temporal narrative**, transforming static data into a fluid 'occupancy probability' field. It allows the viewer to witness the movement of biodiversity hotspots over time, which provides an intuitive understanding of ecosystem adaptation that static snapshots simply cannot capture.
 
 **Strengths:**
 
-**Spatiotemporal Continuity**: The animation successfully bridges the gap between spatial distribution and temporal change, allowing viewers to see the "flow" of biodiversity hotspots rather than static, disconnected snapshots.
+-   **Spatiotemporal Continuity**: Successfully bridges the gap between spatial distribution and temporal change.
 
-**Scientific Consistency**: I implemented a global normalization strategy (calculating `global_max` across all years), ensuring that the color intensity remains scientifically comparable throughout the entire decade.
+-   **Scientific Consistency**: Implements a global normalization strategy (`global_max`), ensuring color intensity remains scientifically comparable across years.
 
-**Storytelling Impact**: The smooth transitions highlight the resilience and migration patterns of species like *Pleuragramma antarcticum*, turning complex raw data into an intuitive ecological story.
+-   **Storytelling Impact**: Highlighting the resilience and migration patterns of species like *Pleuragramma antarcticum*.
 
 **Weaknesses:**
 
-**Computational Intensity**: Generating high-resolution KDE frames for multiple years is extremely memory-intensive, which required me to perform significant parameter tuning (e.g., reducing grid size `n` to 50) to ensure the animation could be rendered efficiently.
+-   **Computational Intensity**: Rendering high-resolution KDE for multiple years is memory-intensive.
 
-**Sensitivity to Sampling Gaps**: In years with lower sampling effort, the density estimation may appear more fragmented or biased compared to years with high-intensity survey data.
+-   **Sampling Gaps**: The density estimation can be sensitive to years with significantly lower sampling effort.
 :::
 
 Note: At least one animation is required, but multiple animations are allowed
